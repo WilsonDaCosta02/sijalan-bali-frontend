@@ -1,0 +1,162 @@
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.auth-header h2 {
+  margin-bottom: 8px;
+}
+
+.auth-header p {
+  opacity: 0.7;
+}
+
+.auth-card {
+  margin: 24px auto; /* 🔥 lebih aman dari translate */
+  z-index: 2;
+
+  background: rgba(255,255,255,0.05);
+  padding: 24px; /* 🔥 dari 32 → 24 */
+  border-radius: 14px;
+  width: 100%;
+  max-width: 320px; /* 🔥 dari 360 → 320 */
+  backdrop-filter: blur(10px);
+}
+
+.auth-card h2 {
+  margin-bottom: 10px;
+}
+
+.auth-card p {
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: none;
+  background: var(--input-bg);   /* 🔥 dynamic */
+  color: var(--input-text);      /* 🔥 dynamic */
+  transition: all 0.2s ease;
+}
+
+.auth-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.auth-icon img {
+  width: 40px;
+}
+
+.auth-btn-primary {
+  display: flex;              /* 🔥 WAJIB */
+  align-items: center;        /* 🔥 center vertikal */
+  justify-content: center;    /* 🔥 center horizontal */
+  gap: 8px;                   /* 🔥 jarak icon & text */
+  width: 100%;
+  background-color: rgba(15, 118, 110, 1);
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 10px;
+  cursor: pointer;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.navbar-btn {
+  width: auto;            /* 🔥 jangan full */
+  margin: 0;              /* 🔥 reset */
+  padding: 8px 14px;      /* 🔥 lebih pas navbar */
+}
+
+.auth-btn-primary:hover {
+  background-color: #25b96a; /* lebih gelap */
+  transform: scale(1.05);   /* sedikit membesar */
+}
+
+
+.auth-btn-secondary {
+  width: 100%;
+  background-color: rgba(255,255,255,0.3);
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.auth-btn-secondary:hover {
+  background-color: rgba(255,255,255,0.5);
+  transform: scale(1.05);
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 6px; /* 🔥 dari 15 → 10 */
+  line-height: 1.2;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  color: var(--label-color); /* 🔥 ini dia */
+  transition: color 0.2s ease;
+}
+
+.input-password {
+  position: relative;
+  width: 100%;
+}
+
+.input-password input {
+  width: 100%;
+  padding: 8px 40px 8px 8px; /* 🔥 ruang untuk icon kanan */
+  box-sizing: border-box;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password:hover {
+  color: white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 24px;
+    border-radius: 12px;
+  }
+}

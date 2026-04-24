@@ -1,0 +1,237 @@
+:root {
+  --bg-main: #c5e2ea;
+--bg-card: #ffffff;
+--text-main: #0f172a;
+--text-sub: #64748b;
+--divider-main: rgba(15,118,110,1);
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --label-color: #64748b;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-height: 100vh;
+  display: block;
+}
+
+body {
+  margin: 0;
+  
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* 🔥 optional tapi mantap */
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+.btn-primary {
+  background-color: rgba(15, 118, 110, 1);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #25b96a; /* lebih gelap */
+  transform: scale(1.05);   /* sedikit membesar */
+}
+
+.btn-secondary {
+  background-color: rgba(255,255,255,0.3);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255,255,255,0.5);
+  transform: scale(1.05);
+}
+
+.btn-submit {
+  background-color: rgba(15,118,110,1);
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 🔥 HOVER */
+.btn-submit:hover {
+  background-color: #25b96a;
+  transform: scale(1.05);   /* sedikit membesar */
+}
+
+/* 🔥 DEFAULT (DARK MODE) */
+.navbar {
+  background-color: #0B1E3C;
+  transition: all 0.1s ease;
+}
+
+/* ☀️ LIGHT MODE */
+html:not(.dark) .navbar {
+  background-color: #c5e2ea;;
+}
+
+html:not(.dark) {
+  --input-bg: #f1f5f9;   /* 🔥 abu terang */
+  --input-text: #0f172a; /* 🔥 teks gelap */
+}
+
+/* 🌙 DARK MODE */
+html.dark {
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #16171d;
+  --border: #2e303a;
+  --code-bg: #1f2028;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --social-bg: rgba(47, 48, 58, 0.5);
+
+  --input-bg: #0B1E3C;
+  --input-text: #ffffff;
+  --label-color: #94a3b8;
+  --bg-main: #0B1E3C;
+--bg-card: #1E293B;
+--text-main: #ffffff;
+--text-sub: #94a3b8;
+--divider-main: rgba(15,118,110,1);
+  --shadow:
+    rgba(0, 0, 0, 0.4) 0 10px 15px -3px,
+    rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+}
+
+/* ☀️ LIGHT MODE → subtitle hijau */
+html:not(.dark) .subtitle-green {
+  color: rgba(15,118,110,1);
+}
+
+/* 🌙 DARK MODE → tetap putih */
+html.dark .subtitle-green {
+  color: white;
+}
+html:not(.dark) .map-title {
+  color: white;
+}
+html:not(.dark) .table-dark-text {
+  color: white;
+}
+/* 🌙 DARK MODE → balik ke abu */
+html.dark .divider-dynamic {
+  background-color: rgba(148,163,184,0.15);
+}
+
+/* ☀️ LIGHT MODE → hijau branding */
+html:not(.dark) .divider-dynamic {
+  background-color: rgba(15,118,110,1);
+}
+@media (max-width: 768px) {
+  .navbar .hamburger {
+    display: block !important;
+  }
+}
