@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 
 
-
 const Dashboard = () => {
 const [openSidebar, setOpenSidebar] = useState(false)
 const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -46,7 +45,7 @@ useEffect(() => {
 />
 
         <div style={styles.content}>
-          <div style={styles.header}>
+          <div style={styles.header(isMobile)}>
             <div>
               <h1 style={styles.title}>Dashboard</h1>
               <p style={styles.subtitle} className="subtitle-green">
@@ -73,7 +72,7 @@ useEffect(() => {
           <div style={styles.headerDivider} className="divider-dynamic"></div>
 
           {/* STAT */}
-          <div style={styles.stats}>
+          <div style={styles.stats(isMobile)}>
   {/* TOTAL */}
   <div style={styles.card}>
     <div>
@@ -123,7 +122,7 @@ useEffect(() => {
   <p>Riwayat Laporan Terakhir</p>
 
   {/* HEADER */}
-  <div style={styles.rowHeader}>
+  <div style={styles.rowHeader(isMobile)}>
     <span>Tanggal</span>
     <span>Lokasi</span>
     <span style={{ textAlign: "right" }}>Tingkat Kerusakan</span>
@@ -135,43 +134,58 @@ useEffect(() => {
                 Belum ada laporan 😢
               </div>
   ) : (
-    reports.slice(-3).map((item, i) => (
-      <div key={i} style={styles.row}>
-        <span>{item.date}</span>
+   reports.slice(-3).map((item, i) => (
+  <div
+    key={i}
+    style={styles.row(isMobile)}
+    onMouseEnter={(e) =>
+      (e.currentTarget.style.backgroundColor =
+        "rgba(148,163,184,0.05)")
+    }
+    onMouseLeave={(e) =>
+      (e.currentTarget.style.backgroundColor = "transparent")
+    }
+  >
+    <span>
+      {isMobile && <b>Tanggal: </b>}
+      {item.date}
+    </span>
 
-        <span style={{ wordBreak: "break-word" }}>
-          {item.roadName}
-          {item.landmark && ` (${item.landmark})`}
-        </span>
+    <span style={{ wordBreak: "break-word" }}>
+      {isMobile && <b>Lokasi: </b>}
+      {item.roadName}
+      {item.landmark && ` (${item.landmark})`}
+    </span>
 
-        <span style={{ textAlign: "right" }}>
-          {item.damage}
-        </span>
+    <span style={{ textAlign: isMobile ? "left" : "right" }}>
+      {isMobile && <b>Kerusakan: </b>}
+      {item.damage}
+    </span>
 
-        {/* 🔥 STATUS BERWARNA */}
-        <span style={{ textAlign: "right" }}>
-          <span
-            style={{
-              ...styles.badge,
-              backgroundColor:
-                item.status === "Selesai"
-                  ? "rgba(34,197,94,0.2)"
-                  : item.status === "Diproses"
-                  ? "rgba(234,179,8,0.2)"
-                  : "rgba(59,130,246,0.2)",
-              color:
-                item.status === "Selesai"
-                  ? "#22c55e"
-                  : item.status === "Diproses"
-                  ? "#facc15"
-                  : "#3b82f6",
-            }}
-          >
-            {item.status}
-          </span>
-        </span>
-      </div>
-    ))
+    <span style={{ textAlign: isMobile ? "left" : "right" }}>
+      {isMobile && <b>Status: </b>}
+      <span
+        style={{
+          ...styles.badge,
+          backgroundColor:
+            item.status === "Selesai"
+              ? "rgba(34,197,94,0.2)"
+              : item.status === "Diproses"
+              ? "rgba(234,179,8,0.2)"
+              : "rgba(59,130,246,0.2)",
+          color:
+            item.status === "Selesai"
+              ? "#22c55e"
+              : item.status === "Diproses"
+              ? "#facc15"
+              : "#3b82f6",
+        }}
+      >
+        {item.status}
+      </span>
+    </span>
+  </div>
+))
   )}
 </div>
         </div>
@@ -221,12 +235,14 @@ color: "var(--text-main)",
     overflowY: "auto" as const,
     paddingBottom: "80px",
   },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "60px",
-  },
+  header: (isMobile: boolean): React.CSSProperties => ({
+  display: "flex",
+  flexDirection: isMobile ? "column" : "row",
+  justifyContent: "space-between",
+  alignItems: isMobile ? "flex-start" : "center",
+  gap: isMobile ? "12px" : "0px",
+  marginBottom: "60px",
+}),
   title: {
   fontSize: "28px",
   fontWeight: "600",
@@ -247,12 +263,12 @@ subtitle: {
     color: "white",
     cursor: "pointer",
   },
-  stats: {
-     display: "flex",
-  flexDirection: window.innerWidth < 768 ? "column" as const : "row" as const,
-  gap: "15px" ,
-    marginBottom: "20px",
-  },
+ stats: (isMobile: boolean): React.CSSProperties => ({
+  display: "flex",
+  flexDirection: isMobile ? "column" : "row",
+  gap: "15px",
+  marginBottom: "20px",
+}),
   headerDivider: {
   height: "1px",
   marginBottom: "30px",
@@ -282,19 +298,17 @@ subtitle: {
   },
   table: {
     backgroundColor: "#1E293B",
-    padding: "15px",
+    padding: "20px",
     borderRadius: "10px",
   },
-  row: {
-  display: "grid",
-  gridTemplateColumns: window.innerWidth < 768
-  ? "1fr"
-  : "1fr 2fr 1fr 1fr",
-  padding: "14px 0",
+  rowHeader: (isMobile: boolean): React.CSSProperties => ({
+  display: isMobile ? "none" : "grid",
+  gridTemplateColumns: "1fr 2fr 1fr 1fr",
+  padding: "10px 0",
+  color: "#94a3b8",
+  fontSize: "13px",
   borderBottom: "1px solid #334155",
-  alignItems: "start",
-  gap: "10px",
-},
+}),
 
 cardTitle: {
   fontSize: "13px",
@@ -316,16 +330,17 @@ icon: {
   width: "45px",
   height: "45px",
 },
-rowHeader: {
+row: (isMobile: boolean): React.CSSProperties => ({
   display: "grid",
-  gridTemplateColumns: window.innerWidth < 768
-  ? "1fr"
-  : "1fr 2fr 1fr 1fr",
-  padding: "10px 0",
-  color: "#94a3b8",
-  fontSize: "13px",
+  gridTemplateColumns: isMobile
+    ? "1fr"
+    : "1fr 2fr 1fr 1fr",
+  padding: "14px 0",
   borderBottom: "1px solid #334155",
-},
+  alignItems: "start",
+  gap: "8px",
+  lineHeight: "1.5",
+}),
 badge: {
   padding: "4px 10px",
   borderRadius: "999px",

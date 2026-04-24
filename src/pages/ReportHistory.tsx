@@ -6,6 +6,8 @@ import { useState, useEffect } from "react"
 
 const ReportHistory = () => {
   const reports: Report[] = getReports() || []
+  const [previewImages, setPreviewImages] = useState<string[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   const [openSidebar, setOpenSidebar] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -50,8 +52,11 @@ const ReportHistory = () => {
             <div style={styles.tableHeader(isMobile)}>
               <span>Tanggal</span>
               <span>Lokasi / Jalan</span>
+              <span style={{ textAlign: "center", paddingRight: "13px" }}>Foto</span> {/* 🔥 TAMBAH INI */}
               <span style={{ textAlign: "right" }}>Tingkat Kerusakan</span>
-              <span style={{ textAlign: "right" }}>Status</span>
+              <span style={{ textAlign: "right", paddingRight: "15px" }}>
+  Status
+</span>
             </div>
 
             {/* DATA */}
@@ -83,6 +88,31 @@ const ReportHistory = () => {
                     {item.landmark && ` (${item.landmark})`}
                   </span>
 
+                   {/* 🔥 FOTO */}
+<span style={styles.photoCell(isMobile)}>
+  {isMobile && <b>Foto: </b>}
+
+  {item.images && item.images.length > 0 ? (
+    <div style={styles.imageWrapper}>
+      <img
+        src={item.images[0]}
+        style={styles.thumbnail}
+        onClick={() => {
+  setPreviewImages(item.images)
+  setCurrentIndex(0)
+}}
+      />
+
+      {item.images.length > 1 && (
+        <small style={styles.morePhoto}>
+          +{item.images.length - 1}
+        </small>
+      )}
+    </div>
+  ) : (
+    <span style={{ color: "#64748b" }}>-</span>
+  )}
+</span>
                   <span style={{ textAlign: isMobile ? "left" : "right" }}>
                     {isMobile && <b>Kerusakan: </b>}
                     {item.damage}
@@ -116,6 +146,50 @@ const ReportHistory = () => {
           </div>
         </div>
       </div>
+      {previewImages.length > 0 && (
+  <div
+    style={styles.modalOverlay}
+    onClick={() => setPreviewImages([])}
+  >
+    <div
+      style={styles.previewWrapper}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <img
+        src={previewImages[currentIndex]}
+        style={styles.fullPreview}
+      />
+
+      {/* tombol kiri */}
+      {currentIndex > 0 && (
+        <button
+          style={styles.navLeft}
+          onClick={() => setCurrentIndex(currentIndex - 1)}
+        >
+          ◀
+        </button>
+      )}
+
+      {/* tombol kanan */}
+      {currentIndex < previewImages.length - 1 && (
+        <button
+          style={styles.navRight}
+          onClick={() => setCurrentIndex(currentIndex + 1)}
+        >
+          ▶
+        </button>
+      )}
+
+      {/* close */}
+      <button
+        style={styles.closePreviewBtn}
+        onClick={() => setPreviewImages([])}
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+)}
     </>
   )
 }
@@ -174,23 +248,27 @@ const styles = {
 
   tableHeader: (isMobile: boolean) => ({
     display: isMobile ? "none" : "grid",
-    gridTemplateColumns: "1fr 2fr 1fr 1fr",
+    gridTemplateColumns: isMobile
+  ? "1fr"
+  : "1fr 2fr 1fr 1fr 1fr",
     padding: "16px 20px",
     color: "#94a3b8",
     fontSize: "13px",
   }),
 
   row: (isMobile: boolean) => ({
-    display: "grid",
-    gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr 1fr 1fr",
-    padding: "18px 20px",
-    borderTop: "1px solid rgba(148,163,184,0.08)",
-    alignItems: "start",
-    gap: "8px",
-    lineHeight: "1.5",
-    color: "#e2e8f0",
-    cursor: "pointer",
-  }),
+  display: "grid",
+  gridTemplateColumns: isMobile
+    ? "1fr"
+    : "1fr 2fr 1fr 1fr 1fr", // 🔥 HARUS SAMA DENGAN HEADER
+  padding: "18px 20px",
+  borderTop: "1px solid rgba(148,163,184,0.08)",
+  alignItems: "center", // 🔥 biar tengah
+  gap: "8px",
+  lineHeight: "1.5",
+  color: "#e2e8f0",
+  cursor: "pointer",
+}),
 
   location: {
     fontWeight: 500,
@@ -210,6 +288,96 @@ const styles = {
     textAlign: "center" as const,
     color: "#94a3b8",
   },
+  imageWrapper: {
+  display: "flex",
+  flexDirection: "column" as const,
+  alignItems: "flex-start",
+  marginBottom: "6px",
+},
+
+thumbnail: {
+  width: "70px",
+  height: "70px",
+  objectFit: "cover" as const,
+  borderRadius: "8px",
+  cursor: "pointer",
+},
+
+morePhoto: {
+  fontSize: "11px",
+  color: "#94a3b8",
+  marginTop: "2px",
+},
+
+modalOverlay: {
+  position: "fixed" as const,
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  backgroundColor: "rgba(0,0,0,0.8)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 9999,
+},
+
+previewWrapper: {
+  position: "relative" as const,
+},
+
+fullPreview: {
+  maxWidth: "90vw",
+  maxHeight: "85vh",
+  borderRadius: "12px",
+},
+
+closePreviewBtn: {
+  position: "absolute" as const,
+  top: "-10px",
+  right: "-10px",
+  backgroundColor: "red",
+  border: "none",
+  color: "white",
+  width: "30px",
+  height: "30px",
+  borderRadius: "50%",
+  cursor: "pointer",
+},
+photoCell: (isMobile: boolean): React.CSSProperties => ({
+  display: "flex",
+  flexDirection: isMobile ? "row" : "column",
+  alignItems: isMobile ? "flex-start" : "center",
+  justifyContent: isMobile ? "flex-start" : "center",
+  gap: "8px",
+}),
+navLeft: {
+  position: "absolute" as const,
+  left: "10px",
+  top: "50%",
+  transform: "translateY(-50%)",
+  backgroundColor: "rgba(0,0,0,0.6)",
+  border: "none",
+  color: "white",
+  fontSize: "18px",
+  padding: "8px 10px",
+  borderRadius: "8px",
+  cursor: "pointer",
+},
+
+navRight: {
+  position: "absolute" as const,
+  right: "10px",
+  top: "50%",
+  transform: "translateY(-50%)",
+  backgroundColor: "rgba(0,0,0,0.6)",
+  border: "none",
+  color: "white",
+  fontSize: "18px",
+  padding: "8px 10px",
+  borderRadius: "8px",
+  cursor: "pointer",
+},
 }
 
 export default ReportHistory
