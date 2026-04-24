@@ -39,7 +39,7 @@ const Login = () => {
 
           {/* PASSWORD */}
           <div className="form-group">
-            <label>Kata Sandi</label>
+            <label>Password</label>
 
             <div className="input-password">
               <input
