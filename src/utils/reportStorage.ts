@@ -16,28 +16,38 @@ export type Report = {
   userPhone: string
 }
 
-const getStorageKey = () => {
-  const mode = localStorage.getItem("userMode")
-  return mode === "guest" ? "guestReports" : "userReports"
-}
+const STORAGE_KEY = "reports"
 
-// 🔥 ambil data
-export const getReports = () => {
-  const key = getStorageKey()
-  const data = localStorage.getItem(key)
+export const getReports = (): Report[] => {
+  const data = localStorage.getItem(STORAGE_KEY)
   return data ? JSON.parse(data) : []
 }
-
-// 🔥 simpan semua
 export const saveReports = (data: Report[]) => {
-  const key = getStorageKey()
-  localStorage.setItem(key, JSON.stringify(data))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
 // 🔥 tambah laporan
 export const addReport = (report: Report) => {
-  const key = getStorageKey()
   const reports = getReports()
   const updated = [...reports, report]
-  localStorage.setItem(key, JSON.stringify(updated))
+
+  saveReports(updated) // 🔥 WAJIB pakai ini
+
+  // 🔥 trigger realtime
+  window.dispatchEvent(new Event("reportUpdated"))
+}
+
+export const updateReportStatus = (
+  id: string,
+  newStatus: Report["status"]
+) => {
+  const reports = getReports()
+
+  const updated = reports.map((r) =>
+    r.id === id ? { ...r, status: newStatus } : r
+  )
+
+  saveReports(updated)
+
+  window.dispatchEvent(new Event("reportUpdated"))
 }

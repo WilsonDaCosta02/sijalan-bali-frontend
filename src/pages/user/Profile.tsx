@@ -1,31 +1,31 @@
-import Navbar from "../components/Navbar"
-import Sidebar from "../components/Sidebar"
-import { useState, useEffect } from "react"
-import userIcon from "../assets/user-auth-icon.png"
-import { Mail, Lock } from "lucide-react"
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import { useState, useEffect } from "react";
+import userIcon from "../../assets/user-auth-icon.png";
+import { Mail, Lock } from "lucide-react";
 
 const Profile = () => {
-  const username = localStorage.getItem("username") || "User"
+  const username = localStorage.getItem("username") || "User";
 
-  const [name, setName] = useState(username)
-  const [email, setEmail] = useState("wilson@gmail.com")
-  const [hoverSave, setHoverSave] = useState(false)
-  const [openSidebar, setOpenSidebar] = useState(false)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [name, setName] = useState(username);
+  const [email, setEmail] = useState("wilson@gmail.com");
+  const [hoverSave, setHoverSave] = useState(false);
+  const [openSidebar, setOpenSidebar] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const s = styles(isMobile)
+  const s = styles(isMobile);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+      setIsMobile(window.innerWidth < 768);
+    };
 
-    window.addEventListener("resize", handleResize)
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("resize", handleResize)
-    }
-  }, [])
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
     <>
@@ -38,7 +38,6 @@ const Profile = () => {
         />
 
         <div style={s.content}>
-          
           {/* HEADER */}
           <div style={s.header}>
             <h1 style={s.title}>Profil Anda</h1>
@@ -51,10 +50,8 @@ const Profile = () => {
 
           {/* WRAPPER */}
           <div style={s.cardWrapper}>
-
             {/* CARD */}
             <div style={s.card}>
-              
               {/* LEFT */}
               <div style={s.left}>
                 <div style={s.avatarWrapper}>
@@ -105,14 +102,13 @@ const Profile = () => {
                   Simpan
                 </button>
               </div>
-
             </div>
           </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
 const styles = (isMobile: boolean): { [key: string]: React.CSSProperties } => ({
   container: {
@@ -245,6 +241,6 @@ const styles = (isMobile: boolean): { [key: string]: React.CSSProperties } => ({
     justifyContent: "center",
     padding: isMobile ? "0px" : "0px 20px",
   },
-})
+});
 
-export default Profile
+export default Profile;

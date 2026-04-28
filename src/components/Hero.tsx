@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div style={styles.container}>
@@ -14,43 +14,41 @@ const Hero = () => {
         </h1>
 
         <p style={styles.subtitle}>
-          Sistem Informasi Geospasial untuk pelaporan dan pemantauan
-          kondisi jalan secara terintegrasi dan real-time.
+          Sistem Informasi Geospasial untuk pelaporan dan pemantauan kondisi
+          jalan secara terintegrasi dan real-time.
         </p>
 
         <div style={styles.buttonGroup}>
-          <button
-            className="btn-primary"
-            onClick={() => navigate("/login")}
-          >
+          <button className="btn-primary" onClick={() => navigate("/login")}>
             Masuk ke SIJALAN
           </button>
 
           <button
-  className="btn-secondary"
-  onClick={() => {
-  localStorage.removeItem("isLogin")
-localStorage.removeItem("userMode")
-  localStorage.removeItem("username")     // 🔥 hapus nama
-  localStorage.setItem("userMode", "guest")
-  localStorage.setItem("isLogin", "false")
+            className="btn-secondary"
+            onClick={() => {
+              localStorage.removeItem("isLogin");
+              localStorage.removeItem("userMode");
+              localStorage.removeItem("username");
+              localStorage.removeItem("registeredUser"); // 🔥 INI WAJIB
 
-  navigate("/dashboard")
-}}
->
-  Lanjut sebagai Tamu
-</button>
+              localStorage.setItem("userMode", "guest");
+
+              navigate("/dashboard");
+            }}
+          >
+            Lanjut sebagai Tamu
+          </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const styles = {
   container: {
     position: "relative" as const,
     height: "100%", // 🔥 ganti ini
-},
+  },
   content: {
     position: "relative" as const,
     zIndex: 2,
@@ -99,6 +97,6 @@ const styles = {
     cursor: "pointer",
     color: "white",
   },
-}
+};
 
-export default Hero
+export default Hero;

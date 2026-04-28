@@ -1,11 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import Landing from "./pages/Landing"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
-import Dashboard from "./pages/Dashboard"
-import CreateReport from "./pages/CreateReport"
-import ReportHistory from "./pages/ReportHistory"
-import Profile from "./pages/Profile"
+import Landing from "./pages/user/Landing"
+import Login from "./pages/auth/Login"
+import Register from "./pages/auth/Register"
+import Dashboard from "./pages/user/Dashboard"
+import CreateReport from "./pages/user/CreateReport"
+import ReportHistory from "./pages/user/ReportHistory"
+import Profile from "./pages/user/Profile"
+
+import AdminLogin from "./pages/admin/AdminLogin"
+import AdminDashboard from "./pages/admin/AdminDashboard"
 
 function App() {
   return (
@@ -19,6 +22,8 @@ function App() {
         <Route path="/history" element={<ReportHistory />} />
         <Route path="/create-report" element={<CreateReport />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   )

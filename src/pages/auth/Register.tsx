@@ -1,67 +1,60 @@
-import Navbar from "../components/Navbar"
-import Background from "../components/Background"
-import "../styles/auth.css"
-import userIcon from "../assets/user-auth-icon.png"
-import { useNavigate } from "react-router-dom"
-import { Eye, EyeOff } from "lucide-react"
-import { useState } from "react"
+import Navbar from "../../components/Navbar";
+import Background from "../../components/Background";
+import "../../styles/auth.css";
+import userIcon from "../../assets/user-auth-icon.png";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 const Register = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
- const handleRegister = () => {
-  if (!name || !email || !password || !confirmPassword) {
-    alert("Semua field wajib diisi")
-    return
-  }
+  const handleRegister = () => {
+    if (!name || !email || !password || !confirmPassword) {
+      alert("Semua field wajib diisi");
+      return;
+    }
 
-  if (password !== confirmPassword) {
-    alert("Password tidak sama")
-    return
-  }
+    if (password !== confirmPassword) {
+      alert("Password tidak sama");
+      return;
+    }
 
-  // 🔥 SIMPAN KE LOCAL STORAGE
-  const userData = {
-    name,
-    email,
-    phone,
-    password,
-  }
+    // 🔥 SIMPAN KE LOCAL STORAGE
+    const userData = {
+      name,
+      email,
+      phone,
+      password,
+    };
 
-  localStorage.setItem("registeredUser", JSON.stringify(userData))
+    localStorage.setItem("registeredUser", JSON.stringify(userData));
 
-  setShowSuccess(true)
+    setShowSuccess(true);
 
-  setTimeout(() => {
-    navigate("/login", { replace: true })
-  }, 2000)
-}
+    setTimeout(() => {
+      navigate("/login", { replace: true });
+    }, 2000);
+  };
 
   return (
     <>
       <Navbar setOpenSidebar={() => {}} />
 
       <Background>
-
         {/* 🔥 POPUP SUCCESS */}
         {showSuccess && (
-          <div
-            style={styles.overlay}
-            onClick={() => setShowSuccess(false)}
-          >
-            <div
-              style={styles.popup}
-              onClick={(e) => e.stopPropagation()}
-            >
+          <div style={styles.overlay} onClick={() => setShowSuccess(false)}>
+            <div style={styles.popup} onClick={(e) => e.stopPropagation()}>
               <h3>Berhasil 🎉</h3>
               <p>Akun berhasil dibuat</p>
 
@@ -76,7 +69,6 @@ const Register = () => {
         )}
 
         <div className="auth-card">
-
           <div className="auth-header">
             <div className="auth-icon">
               <img src={userIcon} alt="user" />
@@ -89,29 +81,31 @@ const Register = () => {
           <div className="form-group">
             <label>Nama</label>
             <input
-  type="text"
-  placeholder="Nama lengkap"
-  value={name}
-  onChange={(e) => setName(e.target.value)}
-/>
+              type="text"
+              placeholder="Nama lengkap"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
 
           <div className="form-group">
             <label>Email</label>
             <input
-  type="email" placeholder="user@example.com"
-  value={email}
-  onChange={(e) => setEmail(e.target.value)}
-/>
+              type="email"
+              placeholder="user@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
           <div className="form-group">
             <label>No HP</label>
             <input
-  type="text" placeholder="08xxxxxxxx"
-  value={phone}
-  onChange={(e) => setPhone(e.target.value)}
-/>
+              type="text"
+              placeholder="08xxxxxxxx"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
           </div>
 
           {/* PASSWORD */}
@@ -120,10 +114,11 @@ const Register = () => {
 
             <div className="input-password">
               <input
-  type={showPassword ? "text" : "password"} placeholder="********"
-  value={password}
-  onChange={(e) => setPassword(e.target.value)}
-/>
+                type={showPassword ? "text" : "password"}
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
               <span
                 className="toggle-password"
@@ -140,30 +135,22 @@ const Register = () => {
 
             <div className="input-password">
               <input
-  type={showConfirmPassword ? "text" : "password"} placeholder="********"
-  value={confirmPassword}
-  onChange={(e) => setConfirmPassword(e.target.value)}
-/>
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="********"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
 
               <span
                 className="toggle-password"
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </span>
             </div>
           </div>
 
-          <button
-            className="auth-btn-primary"
-            onClick={handleRegister}
-          >
+          <button className="auth-btn-primary" onClick={handleRegister}>
             Daftar
           </button>
 
@@ -173,12 +160,11 @@ const Register = () => {
           >
             Kembali ke Login
           </button>
-
         </div>
       </Background>
     </>
-  )
-}
+  );
+};
 
 /* 🔥 STYLE POPUP */
 const styles = {
@@ -214,6 +200,6 @@ const styles = {
     color: "white",
     cursor: "pointer",
   },
-}
+};
 
-export default Register
+export default Register;
