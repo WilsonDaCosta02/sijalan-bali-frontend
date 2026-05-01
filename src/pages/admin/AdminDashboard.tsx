@@ -143,7 +143,9 @@ const AdminDashboard = () => {
         <div
           style={{
             ...styles.content,
-            padding: isMobile ? "16px 12px 80px" : "32px 28px 80px",
+            padding: isMobile
+              ? "16px 12px calc(125px + env(safe-area-inset-bottom))"
+              : "32px 28px 80px",
           }}
         >
           <h1 style={styles.title}>Dashboard Administrator</h1>
