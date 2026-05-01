@@ -12,12 +12,18 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import type { Report } from "../utils/reportStorage";
 
+/* ============================= */
+/* 🔥 FIT BOUNDS KE MARKERS */
+/* ============================= */
 const FitToMarkers = ({ markers }: { markers?: Report[] }) => {
   const map = useMap();
 
   useEffect(() => {
     if (markers && markers.length > 0) {
-      const bounds: [number, number][] = markers.map((m) => [m.lat, m.lng]);
+      const bounds: [number, number][] = markers.map((m) => [
+        Number(m.lat),
+        Number(m.lng),
+      ]);
       map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [markers]);
@@ -25,14 +31,19 @@ const FitToMarkers = ({ markers }: { markers?: Report[] }) => {
   return null;
 };
 
+/* ============================= */
+/* 🔥 TYPES */
+/* ============================= */
 type MapViewProps = {
   lat?: string;
   lng?: string;
   onChangeLocation?: (lat: number, lng: number) => void;
-  markers?: Report[]; // 🔥 TAMBAH INI
+  markers?: Report[];
 };
 
-// ICON
+/* ============================= */
+/* 🔥 ICON */
+/* ============================= */
 const redIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
@@ -41,13 +52,17 @@ const redIcon = new L.Icon({
   iconAnchor: [10, 32],
 });
 
-// BATAS BALI
+/* ============================= */
+/* 🔥 BOUNDS BALI */
+/* ============================= */
 const BALI_BOUNDS: LatLngBoundsExpression = [
   [-8.85, 114.4],
   [-8.05, 115.75],
 ];
 
-// 🔥 PINDAH KE LUAR (INI KUNCINYA)
+/* ============================= */
+/* 🔥 CHANGE VIEW */
+/* ============================= */
 const ChangeView = ({
   lat,
   lng,
@@ -72,11 +87,14 @@ const ChangeView = ({
   return null;
 };
 
-type MapClickHandlerProps = {
+/* ============================= */
+/* 🔥 MAP CLICK HANDLER */
+/* ============================= */
+const MapClickHandler = ({
+  onChangeLocation,
+}: {
   onChangeLocation?: (lat: number, lng: number) => void;
-};
-
-const MapClickHandler = ({ onChangeLocation }: MapClickHandlerProps) => {
+}) => {
   useMapEvents({
     click(e) {
       onChangeLocation?.(e.latlng.lat, e.latlng.lng);
@@ -86,6 +104,17 @@ const MapClickHandler = ({ onChangeLocation }: MapClickHandlerProps) => {
   return null;
 };
 
+/* ============================= */
+/* 🔥 GOOGLE MAPS FUNCTION */
+/* ============================= */
+const openGoogleMaps = (lat: number, lng: number) => {
+  const url = `https://www.google.com/maps?q=${lat},${lng}`;
+  window.open(url, "_blank");
+};
+
+/* ============================= */
+/* 🔥 COMPONENT */
+/* ============================= */
 const MapView = ({ lat, lng, onChangeLocation, markers }: MapViewProps) => {
   const defaultPosition: LatLngExpression = [-8.4095, 115.1889];
 
@@ -97,23 +126,112 @@ const MapView = ({ lat, lng, onChangeLocation, markers }: MapViewProps) => {
 
   return (
     <div
-      style={{ height: "100%", width: "100%", position: "relative", zIndex: 1 }}
+      style={{
+        height: "100%",
+        width: "100%",
+        position: "relative",
+        zIndex: 1,
+      }}
     >
       <MapContainer
-        style={{ height: "100%", width: "100%", borderRadius: "10px" }}
+        style={{
+          height: "100%",
+          width: "100%",
+          borderRadius: "10px",
+        }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {/* 🔥 MARKER DARI DASHBOARD */}
-        {markers?.map((r, i) => (
-          <Marker key={i} position={[r.lat, r.lng]} icon={redIcon}>
-            <Popup>
-              <b>{r.roadName}</b>
-              <br />
-              {r.damage}
-            </Popup>
-          </Marker>
-        ))}
+
+        {/* ============================= */}
+        {/* 🔥 MARKERS */}
+        {/* ============================= */}
+        {markers?.map((r, i) => {
+          const latNum = Number(r.lat);
+          const lngNum = Number(r.lng);
+
+          return (
+            <Marker key={i} position={[latNum, lngNum]} icon={redIcon}>
+              <Popup
+                maxWidth={300}
+                minWidth={150}
+                closeButton={true}
+                autoPan={true}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    maxWidth: "200px", // 🔥 biar ga kepanjangan di desktop
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => openGoogleMaps(latNum, lngNum)}
+                >
+                  {/* TITLE */}
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {r.roadName}
+                  </div>
+
+                  {/* DAMAGE */}
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#64748b",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {r.damage}
+                  </div>
+
+                  {/* BUTTON */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openGoogleMaps(latNum, lngNum);
+                    }}
+                    style={{
+                      marginTop: "6px",
+                      width: "100%",
+                      padding: "8px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: "#22c55e",
+                      color: "white",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    📍 Buka di Google Maps
+                  </button>
+
+                  {/* HINT */}
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "#94a3b8",
+                      textAlign: "center",
+                    }}
+                  >
+                    klik popup untuk buka
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
         <FitToMarkers markers={markers} />
+
+        {/* ============================= */}
+        {/* 🔥 DEFAULT VIEW */}
+        {/* ============================= */}
         {(!markers || markers.length === 0) && (
           <ChangeView
             lat={lat}
@@ -123,11 +241,14 @@ const MapView = ({ lat, lng, onChangeLocation, markers }: MapViewProps) => {
           />
         )}
 
-        {/* 🔥 KLIK MAP */}
+        {/* ============================= */}
+        {/* 🔥 CLICK MAP */}
+        {/* ============================= */}
         {!markers && <MapClickHandler onChangeLocation={onChangeLocation} />}
 
-        {/* 🔥 MARKER DRAG */}
-        {/* 🔥 MARKER DRAG */}
+        {/* ============================= */}
+        {/* 🔥 DRAG MARKER */}
+        {/* ============================= */}
         {!markers && hasLocation && (
           <Marker
             position={position}

@@ -548,7 +548,13 @@ const AdminDashboard = () => {
                       </div>
 
                       <div style={styles.adminPanel}>
-                        <h4 style={{ margin: "0 0 5px 0", fontSize: "15px" }}>
+                        <h4
+                          style={{
+                            margin: "0 0 5px 0",
+                            fontSize: "15px",
+                            color: "white",
+                          }}
+                        >
                           Panel Tindak Lanjut Admin
                         </h4>
 
