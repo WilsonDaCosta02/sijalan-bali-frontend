@@ -238,16 +238,34 @@ html:not(.dark) .divider-dynamic {
 /* ADMIN LIGHT */
 /* ===== ADMIN LIGHT ===== */
 #admin-root {
-  --bg-admin: #0b1e3c;
-  --text-admin: #ffffff;
-  --card-admin: #1e293b;
-  --navbar-admin: #0b1e3c;
+  --bg-admin: #c5e2ea;
+  --text-admin: black;
+  --card-admin: #c5e2ea;
+  --navbar-admin: #c5e2ea;
+  --text-sub-admin: black;
+  --divider-admin: rgba(15, 118, 110, 1); /* hijau */
+  --input-bg: #e2e8f0; /* abu terang */
+  --input-text: #0f172a;
 }
 
-/* ===== ADMIN DARK (MATCH USER) ===== */
-.dark-admin {
-  --bg-admin: #0b1e3c; /* sama seperti user */
+#admin-root.dark-admin {
+  --bg-admin: #0b1e3c;
   --text-admin: #ffffff;
+  --text-sub-admin: #ffffff;
   --card-admin: #1e293b;
-  --navbar-admin: #0b1e3c; /* navbar sama */
+  --navbar-admin: #0b1e3c;
+  --divider-admin: rgba(148, 163, 184, 0.15); /* abu soft */
+  --input-bg: #0b1e3c; /* biru gelap */
+  --input-text: #ffffff;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

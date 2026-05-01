@@ -466,7 +466,7 @@ const CreateReport = () => {
                     style={styles.input}
                   />
                   <div style={styles.field}>
-                    <label style={styles.inputLabel}>Patokan</label>
+                    <label style={styles.inputLabel}>Lokasi</label>
                     <input
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}

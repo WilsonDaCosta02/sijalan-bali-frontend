@@ -51,3 +51,13 @@ export const updateReportStatus = (
 
   window.dispatchEvent(new Event("reportUpdated"))
 }
+
+export const deleteReport = (id: string) => {
+  const reports = getReports();
+  const filtered = reports.filter((r) => r.id !== id);
+
+  localStorage.setItem("reports", JSON.stringify(filtered));
+
+  // 🔥 TRIGGER REALTIME
+  window.dispatchEvent(new Event("reportUpdated"));
+};

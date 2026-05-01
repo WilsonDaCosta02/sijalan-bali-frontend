@@ -22,7 +22,7 @@
   margin: 24px auto; /* 🔥 lebih aman dari translate */
   z-index: 2;
 
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   padding: 24px; /* 🔥 dari 32 → 24 */
   border-radius: 14px;
   width: 100%;
@@ -45,8 +45,8 @@
   box-sizing: border-box;
   border-radius: 8px;
   border: none;
-  background: var(--input-bg);   /* 🔥 dynamic */
-  color: var(--input-text);      /* 🔥 dynamic */
+  background: var(--input-bg); /* 🔥 dynamic */
+  color: var(--input-text); /* 🔥 dynamic */
   transition: all 0.2s ease;
 }
 
@@ -61,10 +61,10 @@
 }
 
 .auth-btn-primary {
-  display: flex;              /* 🔥 WAJIB */
-  align-items: center;        /* 🔥 center vertikal */
-  justify-content: center;    /* 🔥 center horizontal */
-  gap: 8px;                   /* 🔥 jarak icon & text */
+  display: flex; /* 🔥 WAJIB */
+  align-items: center; /* 🔥 center vertikal */
+  justify-content: center; /* 🔥 center horizontal */
+  gap: 8px; /* 🔥 jarak icon & text */
   width: 100%;
   background-color: rgba(15, 118, 110, 1);
   padding: 8px;
@@ -77,20 +77,19 @@
 }
 
 .navbar-btn {
-  width: auto;            /* 🔥 jangan full */
-  margin: 0;              /* 🔥 reset */
-  padding: 8px 14px;      /* 🔥 lebih pas navbar */
+  width: auto; /* 🔥 jangan full */
+  margin: 0; /* 🔥 reset */
+  padding: 8px 14px; /* 🔥 lebih pas navbar */
 }
 
 .auth-btn-primary:hover {
   background-color: #25b96a; /* lebih gelap */
-  transform: scale(1.05);   /* sedikit membesar */
+  transform: scale(1.05); /* sedikit membesar */
 }
-
 
 .auth-btn-secondary {
   width: 100%;
-  background-color: rgba(255,255,255,0.3);
+  background-color: rgba(255, 255, 255, 0.3);
   padding: 8px;
   border-radius: 8px;
   border: none;
@@ -99,7 +98,7 @@
 }
 
 .auth-btn-secondary:hover {
-  background-color: rgba(255,255,255,0.5);
+  background-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.05);
 }
 

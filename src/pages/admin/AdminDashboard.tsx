@@ -1,9 +1,13 @@
 import AdminNavbar from "../../components/AdminNavbar";
 import Sidebar from "../../components/AdminSidebar";
 import MapView from "../../components/MapView";
-import { getReports, updateReportStatus } from "../../utils/reportStorage";
+import {
+  getReports,
+  updateReportStatus,
+  deleteReport,
+} from "../../utils/reportStorage";
 import type { Report } from "../../utils/reportStorage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Trash2 } from "lucide-react";
 
@@ -14,12 +18,18 @@ import checkIcon from "../../assets/check.png";
 import unprocessedIcon from "../../assets/unprocessed.png";
 
 const AdminDashboard = () => {
+  const [filterStatus, setFilterStatus] = useState("Semua");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [newStatus, setNewStatus] = useState<Report["status"]>("Terkirim");
   const [reports, setReports] = useState<Report[]>(getReports());
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "delete";
+  } | null>(null);
 
   const total = reports.length;
   const belum = reports.filter((r) => r.status === "Terkirim").length;
@@ -28,6 +38,28 @@ const AdminDashboard = () => {
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
+  const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = (message: string, type: "success" | "delete") => {
+    setToast({ message, type });
+
+    // 🔥 clear timeout lama kalau ada
+    if (toastTimeout.current) {
+      clearTimeout(toastTimeout.current);
+    }
+
+    toastTimeout.current = setTimeout(() => {
+      setToast(null);
+    }, 2500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeout.current) {
+        clearTimeout(toastTimeout.current);
+      }
+    };
+  }, []);
 
   // 🔒 PROTECT ADMIN
   useEffect(() => {
@@ -67,35 +99,59 @@ const AdminDashboard = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const filteredReports = reports.filter((r) => {
+    const statusAdmin = r.status === "Terkirim" ? "Belum Diproses" : r.status;
+
+    if (filterStatus === "Semua") return true;
+
+    return statusAdmin === filterStatus;
+  });
+
+  const getEmptyMessage = () => {
+    if (reports.length === 0) {
+      return "Belum ada laporan 🚧";
+    }
+
+    if (filterStatus === "Belum Diproses") {
+      return "Belum ada laporan yang belum diproses 🚧";
+    }
+
+    if (filterStatus === "Diproses") {
+      return "Belum ada laporan yang diproses 🚧";
+    }
+
+    if (filterStatus === "Selesai") {
+      return "Belum ada laporan yang terselesaikan 🚧";
+    }
+
+    return "Tidak ada data yang sesuai filter 🚧";
+  };
+
   return (
     <div id="admin-root">
       <AdminNavbar setOpenSidebar={setOpenSidebar} />
 
       <div style={styles.container}>
         {/* SIDEBAR */}
-        <Sidebar
-          open={isMobile ? openSidebar : true}
-          setOpen={setOpenSidebar}
-        />
+        {!isMobile && <Sidebar open={true} setOpen={setOpenSidebar} />}
+
+        {isMobile && openSidebar && (
+          <Sidebar open={true} setOpen={setOpenSidebar} />
+        )}
 
         {/* CONTENT */}
-        <div style={styles.content}>
+        <div
+          style={{
+            ...styles.content,
+            padding: isMobile ? "16px 12px 80px" : "32px 28px 80px",
+          }}
+        >
           <h1 style={styles.title}>Dashboard Administrator</h1>
           <p style={styles.subtitle}>
             Pusat monitoring dan manajemen data pelaporan kerusakan jalan.
           </p>
 
           <div style={styles.headerDivider} className="divider-dynamic"></div>
-          {/* FILTER */}
-          <div style={{ marginBottom: "20px" }}>
-            <label>Filter Status: </label>
-            <select style={styles.select}>
-              <option>Semua Laporan</option>
-              <option>Belum Diproses</option>
-              <option>Diproses</option>
-              <option>Selesai</option>
-            </select>
-          </div>
 
           {/* 🔥 STATS */}
           <div style={styles.stats}>
@@ -151,329 +207,476 @@ const AdminDashboard = () => {
           </div>
 
           {/* GRID */}
-          <div style={styles.grid}>
+          <div
+            style={{
+              ...styles.grid,
+              ...(isMobile && styles.gridMobile),
+            }}
+          >
             {/* MAP */}
-            <div style={styles.mapBox}>
-              <div style={styles.mapHeader}>
-                <img src={petaIcon} style={styles.petaIcon} />
-                <h3 style={{ margin: 0 }}>Pemetaan Geospasial Keseluruhan</h3>
-              </div>
-              <div style={styles.mapContent}>
-                <MapView markers={reports} />
+            <div style={styles.cardWrapper}>
+              <div style={styles.mapBox}>
+                <div style={styles.mapHeader}>
+                  <img src={petaIcon} style={styles.petaIcon} />
+                  <h3 style={{ margin: 0, color: "#e2e8f0" }}>
+                    Pemetaan Geospasial Keseluruhan
+                  </h3>
+                </div>
+                <div style={styles.mapContent}>
+                  <MapView markers={reports} />
+                </div>
               </div>
             </div>
             {/* TABLE */}
-            <div style={styles.tableBox}>
-              <div style={styles.tableHeader}>
-                <img src={petaIcon} style={styles.petaIcon} />
-                <h3 style={{ margin: 0 }}>Tabel Data Laporan</h3>
-              </div>
-
-              <div style={styles.tableContent}>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.th}>ID</th>
-                      <th style={styles.th}>Info Lokasi</th>
-                      <th style={styles.th}>Status</th>
-                      <th style={styles.th}>Aksi</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {reports.map((r, i) => {
-                      const statusAdmin =
-                        r.status === "Terkirim" ? "Belum Diproses" : r.status;
-
-                      return (
-                        <tr
-                          key={i}
-                          style={{
-                            transition: "all 0.2s ease",
-                            cursor: "pointer",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background =
-                              "rgba(255,255,255,0.03)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "transparent")
-                          }
-                        >
-                          <td style={styles.td}>{i + 1}</td>
-                          <td style={styles.td}>{r.roadName}</td>
-
-                          <td style={styles.td}>
-                            <span style={badgeStyle(statusAdmin)}>
-                              {statusAdmin}
-                            </span>
-                          </td>
-
-                          <td style={styles.td}>
-                            <div style={styles.actionGroup}>
-                              <div
-                                style={styles.viewBtn}
-                                onClick={() => {
-                                  setSelectedReport(r);
-                                  setNewStatus(r.status); // 🔥 langsung sync di sini
-                                  setOpenModal(true);
-                                }}
-                              >
-                                <Eye size={16} />
-                              </div>
-
-                              <div style={styles.deleteBtnBox}>
-                                <Trash2 size={16} />
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {openModal && selectedReport && (
-            <div style={styles.modalOverlay}>
-              <div style={styles.modal}>
-                {/* HEADER */}
-                <div style={styles.modalHeader}>
-                  <h3>Detail Laporan Kerusakan</h3>
-                  <span
-                    style={styles.closeBtn}
-                    onClick={() => setOpenModal(false)}
+            <div style={styles.cardWrapper}>
+              <div style={styles.tableBox}>
+                <div style={styles.tableHeader}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
                   >
-                    ✕
-                  </span>
+                    <img src={petaIcon} style={styles.petaIcon} />
+                    <h3 style={{ margin: 0, color: "white" }}>
+                      Tabel Data Laporan
+                    </h3>
+                  </div>
+
+                  {/* 🔥 FILTER WRAPPER */}
+                  {reports.length > 0 && (
+                    <div style={styles.filterWrapper}>
+                      <span style={styles.filterLabel}>Filter Status</span>
+
+                      <select
+                        style={styles.filterSelect}
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                      >
+                        <option value="Semua">Semua Laporan</option>
+                        <option value="Belum Diproses">Belum Diproses</option>
+                        <option value="Diproses">Diproses</option>
+                        <option value="Selesai">Selesai</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
-                {/* CONTENT */}
-                <div style={styles.modalContent}>
-                  {/* LEFT */}
-                  <div style={{ flex: 1, maxWidth: "500px" }}>
-                    {/* 🔥 LIST GAMBAR */}
-                    <div style={styles.imagePreviewBox}>
-                      {selectedReport.images?.length > 0 ? (
-                        <div style={styles.imageWrapper}>
+                <div style={styles.tableContent}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>ID</th>
+                        <th style={{ ...styles.th, paddingLeft: "4px" }}>
+                          Info Lokasi
+                        </th>
+                        <th style={{ ...styles.th, paddingLeft: "20px" }}>
+                          Status
+                        </th>
+                        <th style={{ ...styles.th, paddingLeft: "20px" }}>
+                          Aksi
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {filteredReports.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} style={styles.emptyTd}>
+                            {getEmptyMessage()}
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredReports.map((r, i) => {
+                          const statusAdmin =
+                            r.status === "Terkirim"
+                              ? "Belum Diproses"
+                              : r.status;
+
+                          return (
+                            <tr
+                              key={i}
+                              style={{
+                                transition: "all 0.2s ease",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background =
+                                  "rgba(255,255,255,0.03)")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.background =
+                                  "transparent")
+                              }
+                            >
+                              <td style={styles.td}>{i + 1}</td>
+                              <td style={{ ...styles.td, paddingLeft: "10px" }}>
+                                {r.roadName}
+                              </td>
+
+                              <td style={styles.td}>
+                                <span style={badgeStyle(statusAdmin)}>
+                                  {statusAdmin}
+                                </span>
+                              </td>
+
+                              <td style={styles.td}>
+                                <div style={styles.actionGroup}>
+                                  <div
+                                    style={styles.viewBtn}
+                                    onClick={() => {
+                                      setSelectedReport(r);
+                                      setNewStatus(r.status);
+                                      setOpenModal(true);
+                                    }}
+                                  >
+                                    <Eye size={16} />
+                                  </div>
+
+                                  <div
+                                    style={styles.deleteBtnBox}
+                                    onClick={() => setConfirmDeleteId(r.id)}
+                                  >
+                                    <Trash2 size={16} />
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {openModal && selectedReport && (
+              <div style={styles.modalOverlay}>
+                <div style={styles.modal}>
+                  {/* HEADER */}
+                  <div style={styles.modalHeader}>
+                    <h3>Detail Laporan Kerusakan</h3>
+                    <span
+                      style={styles.closeBtn}
+                      onClick={() => setOpenModal(false)}
+                    >
+                      ✕
+                    </span>
+                  </div>
+
+                  {/* CONTENT */}
+                  <div style={styles.modalContent}>
+                    {/* LEFT */}
+                    <div style={{ flex: 1, maxWidth: "500px" }}>
+                      {/* 🔥 LIST GAMBAR */}
+                      <div style={styles.imagePreviewBox}>
+                        {selectedReport.images?.length > 0 ? (
+                          <div style={styles.imageWrapper}>
+                            <div
+                              style={styles.imageHoverBox}
+                              onClick={() => {
+                                setPreviewImages(selectedReport.images);
+                                setCurrentIndex(0);
+                              }}
+                              onMouseEnter={(e) => {
+                                const overlay = e.currentTarget.querySelector(
+                                  "[data-overlay]",
+                                ) as HTMLElement;
+                                if (overlay) overlay.style.opacity = "1";
+                              }}
+                              onMouseLeave={(e) => {
+                                const overlay = e.currentTarget.querySelector(
+                                  "[data-overlay]",
+                                ) as HTMLElement;
+                                if (overlay) overlay.style.opacity = "0";
+                              }}
+                            >
+                              <img
+                                src={selectedReport.images[0]}
+                                style={styles.thumbnailLarge}
+                              />
+
+                              {/* OVERLAY */}
+                              <div style={styles.overlay} data-overlay>
+                                <span style={styles.zoomIcon}>🔍</span>
+                              </div>
+                            </div>
+
+                            {selectedReport.images.length > 1 && (
+                              <small style={styles.morePhoto}>
+                                +{selectedReport.images.length - 1}
+                              </small>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: "#64748b" }}>
+                            Tidak ada gambar
+                          </span>
+                        )}
+                      </div>
+
+                      {previewImages.length > 0 && (
+                        <div
+                          style={styles.modalOverlay}
+                          onClick={() => setPreviewImages([])}
+                        >
                           <div
-                            style={styles.imageHoverBox}
-                            onClick={() => {
-                              setPreviewImages(selectedReport.images);
-                              setCurrentIndex(0);
-                            }}
-                            onMouseEnter={(e) => {
-                              const overlay = e.currentTarget.querySelector(
-                                "[data-overlay]",
-                              ) as HTMLElement;
-                              if (overlay) overlay.style.opacity = "1";
-                            }}
-                            onMouseLeave={(e) => {
-                              const overlay = e.currentTarget.querySelector(
-                                "[data-overlay]",
-                              ) as HTMLElement;
-                              if (overlay) overlay.style.opacity = "0";
-                            }}
+                            style={styles.previewWrapper}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <img
-                              src={selectedReport.images[0]}
-                              style={styles.thumbnailLarge}
+                              src={previewImages[currentIndex]}
+                              style={styles.fullPreview}
                             />
 
-                            {/* OVERLAY */}
-                            <div style={styles.overlay} data-overlay>
-                              <span style={styles.zoomIcon}>🔍</span>
-                            </div>
-                          </div>
+                            {currentIndex > 0 && (
+                              <button
+                                style={styles.navLeft}
+                                onClick={() =>
+                                  setCurrentIndex(currentIndex - 1)
+                                }
+                              >
+                                ◀
+                              </button>
+                            )}
 
-                          {selectedReport.images.length > 1 && (
-                            <small style={styles.morePhoto}>
-                              +{selectedReport.images.length - 1}
-                            </small>
-                          )}
+                            {currentIndex < previewImages.length - 1 && (
+                              <button
+                                style={styles.navRight}
+                                onClick={() =>
+                                  setCurrentIndex(currentIndex + 1)
+                                }
+                              >
+                                ▶
+                              </button>
+                            )}
+
+                            <button
+                              style={styles.closePreviewBtn}
+                              onClick={() => setPreviewImages([])}
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
-                      ) : (
-                        <span style={{ color: "#64748b" }}>
-                          Tidak ada gambar
-                        </span>
                       )}
+
+                      {/* 🔥 INFO */}
+                      <div style={styles.infoBox}>
+                        <h4 style={styles.infoTitle}>Informasi Laporan</h4>
+
+                        <div style={styles.infoRow}>
+                          <span style={styles.label}>Nama:</span>
+                          <span style={styles.value}>
+                            {selectedReport.userName || "-"}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoRow}>
+                          <span style={styles.label}>Email:</span>
+                          <span style={styles.value}>
+                            {selectedReport.userEmail || "-"}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoRow}>
+                          <span style={styles.label}>No HP:</span>
+                          <span style={styles.value}>
+                            {selectedReport.userPhone || "-"}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoRow}>
+                          <span style={styles.label}>Tanggal:</span>
+                          <span style={styles.value}>
+                            {selectedReport.date || "-"}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoRow}>
+                          <span style={styles.label}>Tingkat Kerusakan:</span>
+                          <span style={styles.value}>
+                            {selectedReport.damage || "-"}
+                          </span>
+                        </div>
+
+                        <div style={styles.infoRow}>
+                          <span style={styles.label}>Status:</span>
+                          <span
+                            style={badgeStyle(
+                              selectedReport.status === "Terkirim"
+                                ? "Belum Diproses"
+                                : selectedReport.status,
+                            )}
+                          >
+                            {selectedReport.status === "Terkirim"
+                              ? "Belum Diproses"
+                              : selectedReport.status}
+                          </span>
+                        </div>
+
+                        <div style={{ marginTop: "12px" }}>
+                          <span style={styles.label}>Keterangan:</span>
+                          <div style={styles.descBox}>
+                            {selectedReport.description || "-"}
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    {previewImages.length > 0 && (
-                      <div
-                        style={styles.modalOverlay}
-                        onClick={() => setPreviewImages([])}
-                      >
-                        <div
-                          style={styles.previewWrapper}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <img
-                            src={previewImages[currentIndex]}
-                            style={styles.fullPreview}
-                          />
+                    {/* RIGHT */}
+                    {/* RIGHT */}
+                    <div style={styles.rightSection}>
+                      <div style={styles.infoRow}>
+                        <span style={styles.label}>Titik Lokasi:</span>
+                        <span style={styles.valueLocation}>
+                          {selectedReport.roadName || "-"}
+                        </span>
+                      </div>
 
-                          {currentIndex > 0 && (
-                            <button
-                              style={styles.navLeft}
-                              onClick={() => setCurrentIndex(currentIndex - 1)}
-                            >
-                              ◀
-                            </button>
-                          )}
+                      <div style={styles.infoRow}>
+                        <span style={styles.label}>Lokasi:</span>
+                        <span style={styles.valueLocation}>
+                          {selectedReport.landmark || "-"}
+                        </span>
+                      </div>
 
-                          {currentIndex < previewImages.length - 1 && (
-                            <button
-                              style={styles.navRight}
-                              onClick={() => setCurrentIndex(currentIndex + 1)}
-                            >
-                              ▶
-                            </button>
-                          )}
+                      <div style={styles.modalMap}>
+                        <MapView markers={[selectedReport]} />
+                      </div>
+
+                      <div style={styles.adminPanel}>
+                        <h4 style={{ margin: "0 0 5px 0", fontSize: "15px" }}>
+                          Panel Tindak Lanjut Admin
+                        </h4>
+
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          <select
+                            style={{ ...styles.select, flex: 1 }}
+                            value={newStatus}
+                            onChange={(e) =>
+                              setNewStatus(e.target.value as Report["status"])
+                            }
+                          >
+                            <option value="Terkirim">Belum Diproses</option>
+                            <option value="Diproses">Diproses</option>
+                            <option value="Selesai">Selesai</option>
+                          </select>
 
                           <button
-                            style={styles.closePreviewBtn}
-                            onClick={() => setPreviewImages([])}
+                            style={{ ...styles.saveBtn, flex: 1 }}
+                            onClick={() => {
+                              if (!selectedReport) return;
+
+                              updateReportStatus(selectedReport.id, newStatus);
+
+                              setSelectedReport({
+                                ...selectedReport,
+                                status: newStatus,
+                              });
+
+                              showToast(
+                                "Status berhasil diperbarui",
+                                "success",
+                              );
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.background =
+                                "rgba(13, 148, 136, 1)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.background =
+                                "rgba(15, 118, 110, 1)")
+                            }
                           >
-                            ✕
+                            Simpan Status
                           </button>
                         </div>
                       </div>
-                    )}
-
-                    {/* 🔥 INFO */}
-                    <div style={styles.infoBox}>
-                      <h4 style={styles.infoTitle}>Informasi Laporan</h4>
-
-                      <div style={styles.infoRow}>
-                        <span style={styles.label}>Nama:</span>
-                        <span style={styles.value}>
-                          {selectedReport.userName || "-"}
-                        </span>
-                      </div>
-
-                      <div style={styles.infoRow}>
-                        <span style={styles.label}>Email:</span>
-                        <span style={styles.value}>
-                          {selectedReport.userEmail || "-"}
-                        </span>
-                      </div>
-
-                      <div style={styles.infoRow}>
-                        <span style={styles.label}>No HP:</span>
-                        <span style={styles.value}>
-                          {selectedReport.userPhone || "-"}
-                        </span>
-                      </div>
-
-                      <div style={styles.infoRow}>
-                        <span style={styles.label}>Tanggal:</span>
-                        <span style={styles.value}>
-                          {selectedReport.date || "-"}
-                        </span>
-                      </div>
-
-                      <div style={styles.infoRow}>
-                        <span style={styles.label}>Tingkat Kerusakan:</span>
-                        <span style={styles.value}>
-                          {selectedReport.damage || "-"}
-                        </span>
-                      </div>
-
-                      <div style={styles.infoRow}>
-                        <span style={styles.label}>Status:</span>
-                        <span
-                          style={badgeStyle(
-                            selectedReport.status === "Terkirim"
-                              ? "Belum Diproses"
-                              : selectedReport.status,
-                          )}
-                        >
-                          {selectedReport.status === "Terkirim"
-                            ? "Belum Diproses"
-                            : selectedReport.status}
-                        </span>
-                      </div>
-
-                      <div style={{ marginTop: "12px" }}>
-                        <span style={styles.label}>Keterangan:</span>
-                        <div style={styles.descBox}>
-                          {selectedReport.description || "-"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* RIGHT */}
-                  {/* RIGHT */}
-                  <div style={styles.rightSection}>
-                    <div style={styles.infoRow}>
-                      <span style={styles.label}>Titik Lokasi:</span>
-                      <span style={styles.valueLocation}>
-                        {selectedReport.roadName || "-"}
-                      </span>
-                    </div>
-
-                    <div style={styles.infoRow}>
-                      <span style={styles.label}>Patokan:</span>
-                      <span style={styles.valueLocation}>
-                        {selectedReport.landmark || "-"}
-                      </span>
-                    </div>
-
-                    <div style={styles.modalMap}>
-                      <MapView markers={[selectedReport]} />
-                    </div>
-
-                    <div style={styles.adminPanel}>
-                      <h4>Panel Tindak Lanjut Admin</h4>
-
-                      <div style={{ display: "flex", gap: "10px" }}>
-                        <select
-                          style={{ ...styles.select, flex: 1 }}
-                          value={newStatus}
-                          onChange={(e) =>
-                            setNewStatus(e.target.value as Report["status"])
-                          }
-                        >
-                          <option value="Terkirim">Belum Diproses</option>
-                          <option value="Diproses">Diproses</option>
-                          <option value="Selesai">Selesai</option>
-                        </select>
-
-                        <button
-                          style={{ ...styles.saveBtn, flex: 1 }}
-                          onClick={() => {
-                            if (!selectedReport) return;
-
-                            updateReportStatus(selectedReport.id, newStatus);
-
-                            setSelectedReport({
-                              ...selectedReport,
-                              status: newStatus,
-                            });
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background =
-                              "rgba(13, 148, 136, 1)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background =
-                              "rgba(15, 118, 110, 1)")
-                          }
-                        >
-                          Simpan Status
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+        {toast && (
+          <div
+            style={{
+              position: "fixed",
+              top: "20px",
+              left: "40%",
+              padding: "14px 18px",
+              borderRadius: "999px", // 🔥 pill style biar modern
+              background:
+                toast.type === "success"
+                  ? "rgba(16,185,129,0.9)"
+                  : "rgba(239,68,68,0.9)",
+              color: "white",
+              fontSize: "14px",
+              fontWeight: "500",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+              backdropFilter: "blur(10px)",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              animation: "slideIn 0.3s ease",
+              zIndex: 99999,
+            }}
+          >
+            <span style={{ fontSize: "16px" }}>
+              {toast.type === "success" ? "✅" : "🗑️"}
+            </span>
+            {toast.message}
+          </div>
+        )}
+
+        {confirmDeleteId && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.confirmBox}>
+              <h3 style={{ marginBottom: "10px" }}>Hapus Laporan?</h3>
+
+              <p style={{ color: "#94a3b8", fontSize: "14px" }}>
+                Data yang sudah dihapus tidak bisa dikembalikan.
+              </p>
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+                {/* CANCEL */}
+                <button
+                  style={styles.cancelBtn}
+                  onClick={() => setConfirmDeleteId(null)}
+                >
+                  Batal
+                </button>
+
+                {/* DELETE */}
+                <button
+                  style={styles.deleteConfirmBtn}
+                  onClick={() => {
+                    deleteReport(confirmDeleteId);
+
+                    setReports((prev) =>
+                      prev.filter((item) => item.id !== confirmDeleteId),
+                    );
+
+                    showToast("Laporan berhasil dihapus", "delete");
+
+                    if (selectedReport?.id === confirmDeleteId) {
+                      setOpenModal(false);
+                      setSelectedReport(null);
+                    }
+
+                    setConfirmDeleteId(null);
+                  }}
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -510,7 +713,6 @@ const styles = {
 
   content: {
     flex: 1,
-    padding: "32px 28px 80px",
     backgroundColor: "var(--bg-admin)",
     color: "var(--text-admin)", // ✅ FIX
     overflowY: "auto" as const, // tetap boleh
@@ -519,12 +721,14 @@ const styles = {
   title: {
     fontSize: "28px",
     fontWeight: "600",
-    marginBottom: "5px",
+    color: "var(--text-admin)",
+    margin: 0,
   },
 
   subtitle: {
-    color: "#94a3b8",
-    marginBottom: "20px",
+    color: "var(--text-sub-admin)",
+    marginTop: "6px",
+    fontSize: "14px",
   },
 
   select: {
@@ -545,7 +749,7 @@ const styles = {
   card: {
     flex: 1,
     minWidth: "180px",
-    background: "var(--card-admin)",
+    background: "#1e293b",
     padding: "18px",
     borderRadius: "14px",
     display: "flex",
@@ -579,33 +783,40 @@ const styles = {
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "2fr 1fr",
+    gridTemplateColumns: "1.2fr 1fr",
     gap: "24px",
+    alignItems: "start",
+    marginTop: "10px",
   },
 
+  // 🔥 TAMBAHIN INI
+  gridMobile: {
+    gridTemplateColumns: "1fr",
+  },
   mapBox: {
-    background: "var(--card-admin)",
+    background: "#1e293b",
     padding: "18px",
-    borderRadius: "14px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    overflow: "hidden", // 🔥 double safety// 🔥 lebih kelihatan
+    borderRadius: "16px",
+    border: "1px solid rgba(255,255,255,0.06)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.4)", // 🔥 jangan terlalu berat
   },
 
   tableBox: {
-    background: "var(--card-admin)",
+    background: "#1e293b",
     padding: "18px",
-    borderRadius: "14px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    height: "500px", // 🔥 samain dengan map
+    borderRadius: "16px",
+    border: "1px solid rgba(255,255,255,0.06)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
     display: "flex",
     flexDirection: "column" as const,
+    height: "460px",
   },
-
   table: {
     width: "100%",
     borderCollapse: "collapse" as const,
     marginTop: "16px",
     flex: 1,
+    tableLayout: "fixed" as const, // 🔥 penting banget biar td ga melebarkan tabe  l
   },
   petaIcon: {
     width: "25px",
@@ -620,7 +831,7 @@ const styles = {
   th: {
     position: "sticky" as const,
     top: 0,
-    background: "var(--card-admin)",
+    background: "#1e293b",
     zIndex: 1,
     textAlign: "left" as const,
     padding: "12px 10px",
@@ -636,10 +847,12 @@ const styles = {
     overflow: "hidden", // 🔥 sembunyiin sisanya
     textOverflow: "ellipsis", // 🔥 munculin "..."
     maxWidth: "180px", // 🔥 penting (biar kepotong)
+    color: "#e2e8f0",
   },
   tableHeader: {
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between", // 🔥 penting
     gap: "10px",
     paddingBottom: "12px",
     marginBottom: "-5px",
@@ -667,6 +880,7 @@ const styles = {
   },
   tableContent: {
     overflowY: "auto" as const,
+    overflowX: "auto" as const,
     flex: 1 as const,
   },
   mapContent: {
@@ -677,8 +891,8 @@ const styles = {
   headerDivider: {
     height: "1px",
     marginBottom: "10px",
-    marginTop: "10px",
-    background: "#475569", // 🔥 naik ke atas
+    marginTop: "20px",
+    background: "var(--divider-admin)", // 🔥 naik ke atas
   },
   modalOverlay: {
     position: "fixed" as const,
@@ -694,7 +908,7 @@ const styles = {
     width: "90%",
     maxWidth: "1000px",
     maxHeight: "90vh", // 🔥 BATAS TINGGI
-    background: "#1E293B",
+    background: "var(--card-admin)", // 🔥 AUTO THEME
     borderRadius: "20px",
     display: "flex", // 🔥 penting
     flexDirection: "column" as const, // 🔥 penting
@@ -719,9 +933,9 @@ const styles = {
 
   modalContent: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "24px",
-    padding: "24px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "20px",
+    padding: "20px",
     overflowY: "auto" as const, // 🔥 INI KUNCI
   },
 
@@ -751,17 +965,17 @@ const styles = {
   },
 
   modalMap: {
-    height: "437px", // 🔥 BESARIN
+    width: "100%",
+    height: "300px", // mobile friendly
     borderRadius: "14px",
     overflow: "hidden",
-    marginTop: "8px",
   },
 
   adminPanel: {
-    marginTop: "18px",
-    background: "#24324A",
-    padding: "18px",
-    borderRadius: "14px",
+    marginTop: "6px", // 🔥 kasih jarak dikit dari atas
+    background: "#24324A", // sekalian fix theme
+    padding: "5px 10px", // 🔥 dipendekin
+    borderRadius: "12px", // 🔥 sedikit lebih kecil
     border: "1px solid rgba(255,255,255,0.08)",
   },
 
@@ -777,7 +991,7 @@ const styles = {
   },
   label: {
     fontSize: "16px",
-    color: "#94a3b8",
+    color: "#727478",
     minWidth: "100px", // 🔥 tambah jarak
   },
 
@@ -785,6 +999,7 @@ const styles = {
     fontSize: "20px",
     fontWeight: "600",
     marginBottom: "10px",
+    color: "white",
   },
 
   value: {
@@ -793,6 +1008,8 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     fontSize: "14px",
+    wordBreak: "break-word" as const,
+    color: "white",
   },
   rightSection: {
     display: "flex",
@@ -818,7 +1035,7 @@ const styles = {
   valueLocation: {
     flex: 1,
     textAlign: "left" as const,
-    color: "#e2e8f0",
+    color: "var(--text-admin)", // 🔥 INI KUNCINYA
     lineHeight: "1.5",
     wordBreak: "break-word" as const,
   },
@@ -835,9 +1052,10 @@ const styles = {
     width: "100%",
   },
   thumbnailLarge: {
-    width: "100%", // 🔥 full lebar container
-    maxWidth: "420px", // 🔥 batas biar ga terlalu besar
-    height: "260px", // 🔥 lebih tinggi
+    width: "100%",
+    maxWidth: "100%",
+    height: "auto", // 🔥 penting
+    maxHeight: "260px",
     objectFit: "cover" as const,
     borderRadius: "14px",
     cursor: "pointer",
@@ -923,6 +1141,70 @@ const styles = {
   zoomIcon: {
     fontSize: "28px",
     color: "white",
+  },
+
+  confirmBox: {
+    background: "#1E293B",
+    padding: "24px",
+    borderRadius: "16px",
+    width: "100%",
+    maxWidth: "380px",
+    textAlign: "center" as const,
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+  },
+
+  cancelBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "transparent",
+    color: "#cbd5f5",
+    cursor: "pointer",
+  },
+
+  deleteConfirmBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#ef4444",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "500",
+  },
+  emptyTd: {
+    textAlign: "center" as const,
+    padding: "50px 20px",
+    color: "#94a3b8",
+    fontSize: "15px",
+    opacity: 0.8,
+  },
+  cardWrapper: {
+    padding: "6px", // 🔥 kasih jarak luar
+    borderRadius: "20px",
+    background: "rgba(255,255,255,0.03)", // subtle layer
+  },
+  filterSelect: {
+    padding: "1px 1px",
+    borderRadius: "8px",
+    background: "#0F172A",
+    color: "white",
+    border: "1px solid rgba(255,255,255,0.1)",
+    fontSize: "11px",
+  },
+  filterWrapper: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-end", // 🔥 biar nempel kanan
+  },
+
+  filterLabel: {
+    fontSize: "14px",
+    color: "#94a3b8",
+    marginBottom: "4px",
+    marginRight: "15px",
   },
 };
 
