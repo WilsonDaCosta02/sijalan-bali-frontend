@@ -5,23 +5,26 @@ import toolsIcon from "../../assets/tools.png";
 import checkIcon from "../../assets/check.png";
 import petaIcon from "../../assets/peta.png";
 import MapView from "../../components/MapView";
-import { getReports } from "../../utils/reportStorage";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { History } from "lucide-react";
 
+type Report = {
+  id: number;
+  road_name: string;
+  landmark: string;
+  damage_level: string;
+  status: string;
+  latitude: string;
+  longitude: string;
+  image_url: string[];
+  created_at: string;
+};
+
 const Dashboard = () => {
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const user = JSON.parse(localStorage.getItem("registeredUser") || "{}");
-  const mode = localStorage.getItem("userMode");
-
-  const initialReports =
-    mode === "guest" || !user?.email
-      ? []
-      : getReports().filter((r) => r.userEmail === user.email);
-
-  const [reports, setReports] = useState(initialReports);
+  const [reports, setReports] = useState<Report[]>([]);
   const total = reports.length;
   const diproses = reports.filter((r) => r.status === "Diproses").length;
   const selesai = reports.filter((r) => r.status === "Selesai").length;
@@ -43,32 +46,38 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const handleUpdate = () => {
-      const user = JSON.parse(localStorage.getItem("registeredUser") || "{}");
-      const mode = localStorage.getItem("userMode");
+    const fetchReports = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-      const allReports = getReports();
+        if (!token) return;
 
-      if (mode === "guest") {
-        setReports([]);
-        return;
-      } else {
-        const myReports = allReports.filter((r) => r.userEmail === user.email);
-        setReports([...myReports]);
+        const response = await fetch("http://localhost:5000/api/reports/my", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.log(data.message);
+          return;
+        }
+
+        setReports(data);
+      } catch (err) {
+        console.log(err);
       }
     };
 
-    // 🔥 WAJIB: pasang listener
-    window.addEventListener("reportUpdated", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
+    fetchReports();
 
-    // 🔥 OPTIONAL tapi bagus: langsung sync saat mount
-    handleUpdate();
+    const interval = setInterval(() => {
+      fetchReports();
+    }, 1000);
 
-    return () => {
-      window.removeEventListener("reportUpdated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -93,9 +102,9 @@ const Dashboard = () => {
             <button
               className="btn-primary"
               onClick={() => {
-                const isLogin = localStorage.getItem("isLogin") === "true";
+                const token = localStorage.getItem("token");
 
-                if (!isLogin) {
+                if (!token) {
                   setShowLoginWarning(true);
                 } else {
                   navigate("/create-report");
@@ -155,7 +164,13 @@ const Dashboard = () => {
             </div>
 
             <div style={styles.mapBox}>
-              <MapView markers={reports} />
+              <MapView
+                markers={reports.map((r) => ({
+                  ...r,
+                  lat: Number(r.latitude),
+                  lng: Number(r.longitude),
+                }))}
+              />
             </div>
           </div>
 
@@ -186,58 +201,65 @@ const Dashboard = () => {
                 Belum ada laporan 😢
               </div>
             ) : (
-              reports.slice(-3).map((item, i) => (
-                <div
-                  key={i}
-                  style={styles.row(isMobile)}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "rgba(148,163,184,0.05)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
-                >
-                  <span>
-                    {isMobile && <b>Tanggal: </b>}
-                    {item.date}
-                  </span>
-
-                  <span style={{ wordBreak: "break-word" }}>
-                    {isMobile && <b>Lokasi: </b>}
-                    {item.roadName}
-                    {item.landmark && ` (${item.landmark})`}
-                  </span>
-
-                  <span style={{ textAlign: isMobile ? "left" : "right" }}>
-                    {isMobile && <b>Kerusakan: </b>}
-                    {item.damage}
-                  </span>
-
-                  <span style={{ textAlign: isMobile ? "left" : "right" }}>
-                    {isMobile && <b>Status: </b>}
-                    <span
-                      style={{
-                        ...styles.badge,
-                        backgroundColor:
-                          item.status === "Selesai"
-                            ? "rgba(34,197,94,0.2)"
-                            : item.status === "Diproses"
-                              ? "rgba(234,179,8,0.2)"
-                              : "rgba(59,130,246,0.2)",
-                        color:
-                          item.status === "Selesai"
-                            ? "#22c55e"
-                            : item.status === "Diproses"
-                              ? "#facc15"
-                              : "#3b82f6",
-                      }}
-                    >
-                      {item.status}
+              [...reports]
+                .sort(
+                  (a, b) =>
+                    new Date(a.created_at).getTime() -
+                    new Date(b.created_at).getTime(),
+                )
+                .slice(-3)
+                .map((item, i) => (
+                  <div
+                    key={i}
+                    style={styles.row(isMobile)}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        "rgba(148,163,184,0.05)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
+                  >
+                    <span>
+                      {isMobile && <b>Tanggal: </b>}
+                      {new Date(item.created_at).toLocaleDateString("id-ID")}
                     </span>
-                  </span>
-                </div>
-              ))
+
+                    <span style={{ wordBreak: "break-word" }}>
+                      {isMobile && <b>Lokasi: </b>}
+                      {item.road_name}
+                      {item.landmark && ` (${item.landmark})`}
+                    </span>
+
+                    <span style={{ textAlign: isMobile ? "left" : "right" }}>
+                      {isMobile && <b>Kerusakan: </b>}
+                      {item.damage_level}
+                    </span>
+
+                    <span style={{ textAlign: isMobile ? "left" : "right" }}>
+                      {isMobile && <b>Status: </b>}
+                      <span
+                        style={{
+                          ...styles.badge,
+                          backgroundColor:
+                            item.status === "Selesai"
+                              ? "rgba(34,197,94,0.2)"
+                              : item.status === "Diproses"
+                                ? "rgba(234,179,8,0.2)"
+                                : "rgba(59,130,246,0.2)",
+                          color:
+                            item.status === "Selesai"
+                              ? "#22c55e"
+                              : item.status === "Diproses"
+                                ? "#facc15"
+                                : "#3b82f6",
+                        }}
+                      >
+                        {item.status}
+                      </span>
+                    </span>
+                  </div>
+                ))
             )}
           </div>
         </div>

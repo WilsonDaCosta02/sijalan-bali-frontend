@@ -1,9 +1,7 @@
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import MapView from "../../components/MapView";
-import { addReport } from "../../utils/reportStorage";
 import { useState, useEffect } from "react";
-import type { Report } from "../../utils/reportStorage";
 
 type Suggestion = {
   display_name: string;
@@ -129,6 +127,7 @@ const CreateReport = () => {
     }
   };
 
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [showOption, setShowOption] = useState(false);
 
@@ -150,6 +149,7 @@ const CreateReport = () => {
     const url = URL.createObjectURL(file);
 
     setImages((prev) => [...prev, url]);
+    setImageFiles((prev) => [...prev, file]);
     setShowOption(false);
 
     // 🔥 MODE LOGIC TETAP
@@ -205,14 +205,12 @@ const CreateReport = () => {
   };
 
   const handleSubmit = async () => {
-    const mode = localStorage.getItem("userMode"); // 🔥 TAMBAH INI
-    const user = JSON.parse(localStorage.getItem("registeredUser") || "{}");
+    const token = localStorage.getItem("token");
 
-    if (mode !== "user" || !user?.email) {
+    if (!token) {
       alert("Silakan login terlebih dahulu");
       return;
     }
-
     if (images.length === 0) {
       alert("Foto belum diupload");
       return;
@@ -239,25 +237,39 @@ const CreateReport = () => {
       return;
     }
 
-    const newReport: Report = {
-      id: Date.now().toString(),
-      date: new Date().toLocaleDateString("id-ID"),
-      roadName: address,
-      landmark,
-      damage, // 🔥 dari state
-      description, // 🔥 TAMBAH INI
-      status: "Terkirim",
-      lat: Number(finalLat),
-      lng: Number(finalLng),
-      images: images,
+    try {
+      const formData = new FormData();
 
-      // 🔥 INI YANG BARU
-      userName: user.name || "guest",
-      userEmail: user.email,
-      userPhone: user.phone,
-    };
+      formData.append("roadName", address);
+      formData.append("landmark", landmark);
+      formData.append("damage", damage);
+      formData.append("description", description);
+      formData.append("lat", finalLat);
+      formData.append("lng", finalLng);
 
-    addReport(newReport);
+      // 🔥 append semua gambar
+      imageFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const response = await fetch("http://localhost:5000/api/reports", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Gagal membuat laporan");
+        return;
+      }
+    } catch (err) {
+      console.log(err);
+      alert("Terjadi kesalahan server");
+    }
 
     setShowSuccess(true);
 
@@ -267,12 +279,14 @@ const CreateReport = () => {
 
     // reset
     setImages([]);
+    setImageFiles([]);
     setLatitude("");
     setLongitude("");
     setAddress("");
     setLandmark("");
     setDamage("Rusak ringan");
     setDescription("");
+    setSuggestions([]);
   };
 
   return (
@@ -381,6 +395,12 @@ const CreateReport = () => {
                                 (_, index) => index !== i,
                               );
                               setImages(newImages);
+
+                              const newFiles = imageFiles.filter(
+                                (_, index) => index !== i,
+                              );
+
+                              setImageFiles(newFiles);
 
                               if (newImages.length === 0) {
                                 setLatitude("");

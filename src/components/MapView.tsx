@@ -7,24 +7,44 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import type { LatLngExpression, LatLngBoundsExpression } from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import type { Report } from "../utils/reportStorage";
+
+type Report = {
+  id: number;
+  road_name: string;
+  landmark: string;
+  damage_level: string;
+  status: string;
+  latitude: string;
+  longitude: string;
+  image_url: string[];
+  created_at: string;
+
+  lat?: number;
+  lng?: number;
+};
 
 /* ============================= */
 /* 🔥 FIT BOUNDS KE MARKERS */
 /* ============================= */
 const FitToMarkers = ({ markers }: { markers?: Report[] }) => {
   const map = useMap();
+  const hasFit = useRef(false);
 
   useEffect(() => {
-    if (markers && markers.length > 0) {
+    if (!hasFit.current && markers && markers.length > 0) {
       const bounds: [number, number][] = markers.map((m) => [
         Number(m.lat),
         Number(m.lng),
       ]);
-      map.fitBounds(bounds, { padding: [50, 50] });
+
+      map.fitBounds(bounds, {
+        padding: [50, 50],
+      });
+
+      hasFit.current = true;
     }
   }, [markers]);
 
@@ -176,7 +196,7 @@ const MapView = ({ lat, lng, onChangeLocation, markers }: MapViewProps) => {
                       wordBreak: "break-word",
                     }}
                   >
-                    {r.roadName}
+                    {r.road_name}
                   </div>
 
                   {/* DAMAGE */}
@@ -187,7 +207,7 @@ const MapView = ({ lat, lng, onChangeLocation, markers }: MapViewProps) => {
                       wordBreak: "break-word",
                     }}
                   >
-                    {r.damage}
+                    {r.damage_level}
                   </div>
 
                   {/* BUTTON */}

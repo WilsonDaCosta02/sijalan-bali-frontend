@@ -18,7 +18,7 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
   const location = useLocation();
   const path = location.pathname;
   const isAuthPage = path === "/" || path === "/login" || path === "/register";
-  const username = localStorage.getItem("username") || "User";
+  const [username, setUsername] = useState("User");
   const [hoverUser, setHoverUser] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -29,6 +29,32 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        const response = await fetch("http://localhost:5000/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setUsername(data.name);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchProfile();
   }, []);
 
   useEffect(() => {

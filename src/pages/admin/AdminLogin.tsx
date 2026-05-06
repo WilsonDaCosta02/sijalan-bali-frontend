@@ -65,11 +65,43 @@ const AdminLogin = () => {
           {/* BUTTON */}
           <button
             className="auth-btn-primary"
-            onClick={() => {
-              localStorage.setItem("userMode", "admin");
-              localStorage.setItem("admin_username", "Administrator");
+            onClick={async () => {
+              try {
+                const response = await fetch(
+                  "http://localhost:5000/api/auth/admin-login",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      email,
+                      password,
+                    }),
+                  },
+                );
 
-              navigate("/admin-dashboard");
+                const data = await response.json();
+
+                if (!response.ok) {
+                  alert(data.message || "Login admin gagal");
+                  return;
+                }
+
+                // 🔥 simpan auth
+                localStorage.setItem("admin_token", data.token);
+
+                localStorage.setItem("user", JSON.stringify(data.user));
+
+                localStorage.setItem("admin_username", data.user.name);
+
+                localStorage.setItem("userMode", "admin");
+
+                navigate("/admin-dashboard");
+              } catch (err) {
+                console.log(err);
+                alert("Terjadi kesalahan server");
+              }
             }}
           >
             Masuk sebagai Admin

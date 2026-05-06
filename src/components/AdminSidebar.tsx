@@ -84,6 +84,10 @@ const AdminSidebar = ({ open, setOpen }: Props) => {
         <div
           style={styles.logout}
           onClick={() => {
+            localStorage.removeItem("admin_token");
+            localStorage.removeItem("admin_username");
+            localStorage.removeItem("userMode");
+
             navigate("/admin-login");
           }}
         >

@@ -11,6 +11,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   return (
     <>
       <Navbar setOpenSidebar={() => {}} />
@@ -59,29 +61,60 @@ const Login = () => {
 
           <button
             className="auth-btn-primary"
-            onClick={() => {
-              const user = localStorage.getItem("registeredUser");
+            onClick={async () => {
+              try {
+                if (!email || !password) {
+                  alert("Email dan password wajib diisi");
+                  return;
+                }
 
-              if (!user) {
-                alert("Belum ada akun, silakan daftar dulu");
-                return;
+                setLoading(true);
+
+                const response = await fetch(
+                  "http://localhost:5000/api/auth/login",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+
+                    body: JSON.stringify({
+                      email,
+                      password,
+                    }),
+                  },
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                  alert(data.message || "Login gagal");
+                  return;
+                }
+
+                // 🔥 SIMPAN AUTH
+                localStorage.setItem("token", data.token);
+
+                localStorage.setItem("user", JSON.stringify(data.user));
+
+                localStorage.setItem("username", data.user.name);
+
+                localStorage.setItem("isLogin", "true");
+
+                localStorage.setItem("userMode", "user");
+
+                navigate("/dashboard", {
+                  replace: true,
+                });
+              } catch (err) {
+                console.error(err);
+                alert("Terjadi kesalahan server");
+              } finally {
+                setLoading(false);
               }
-
-              const parsed = JSON.parse(user);
-
-              if (email !== parsed.email || password !== parsed.password) {
-                alert("Email atau password salah");
-                return;
-              }
-
-              localStorage.setItem("isLogin", "true");
-              localStorage.setItem("userMode", "user");
-              localStorage.setItem("username", parsed.name);
-
-              navigate("/dashboard", { replace: true });
             }}
           >
-            Masuk
+            {loading ? "Loading..." : "Masuk"}
           </button>
 
           <p

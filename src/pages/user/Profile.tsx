@@ -5,10 +5,11 @@ import userIcon from "../../assets/user-auth-icon.png";
 import { Mail, Lock } from "lucide-react";
 
 const Profile = () => {
-  const username = localStorage.getItem("username") || "User";
+  const [loading, setLoading] = useState(true);
 
-  const [name, setName] = useState(username);
-  const [email, setEmail] = useState("wilson@gmail.com");
+  const [name, setName] = useState("");
+
+  const [email, setEmail] = useState("");
   const [hoverSave, setHoverSave] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -26,6 +27,39 @@ const Profile = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        const response = await fetch("http://localhost:5000/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setName(data.name);
+          setEmail(data.email);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>

@@ -26,10 +26,10 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("isLogin");
-    localStorage.removeItem("userMode");
-    localStorage.removeItem("username"); // 🔥 hapus status login
-    navigate("/", { replace: true }); // 🔥 balik ke landing page
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+
+    navigate("/", { replace: true });
   };
 
   return (

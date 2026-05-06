@@ -1,12 +1,6 @@
 import AdminNavbar from "../../components/AdminNavbar";
 import Sidebar from "../../components/AdminSidebar";
 import MapView from "../../components/MapView";
-import {
-  getReports,
-  updateReportStatus,
-  deleteReport,
-} from "../../utils/reportStorage";
-import type { Report } from "../../utils/reportStorage";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Trash2 } from "lucide-react";
@@ -17,15 +11,38 @@ import toolsIcon from "../../assets/tools.png";
 import checkIcon from "../../assets/check.png";
 import unprocessedIcon from "../../assets/unprocessed.png";
 
+type Report = {
+  id: number;
+  road_name: string;
+  landmark: string;
+  damage_level: string;
+  description: string;
+
+  latitude: string;
+  longitude: string;
+
+  image_url: string[];
+
+  user_name: string;
+  user_email: string;
+  user_phone: string;
+
+  status: "Terkirim" | "Diproses" | "Selesai";
+
+  created_at: string;
+};
+
 const AdminDashboard = () => {
   const [filterStatus, setFilterStatus] = useState("Semua");
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false,
+  );
   const [newStatus, setNewStatus] = useState<Report["status"]>("Terkirim");
-  const [reports, setReports] = useState<Report[]>(getReports());
+  const [reports, setReports] = useState<Report[]>([]);
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "delete";
@@ -63,25 +80,47 @@ const AdminDashboard = () => {
 
   // 🔒 PROTECT ADMIN
   useEffect(() => {
-    if (localStorage.getItem("userMode") !== "admin") {
+    const token = localStorage.getItem("admin_token");
+
+    if (!token) {
       navigate("/admin-login");
     }
-  }, []);
+  }, [navigate]);
 
   // 🔥 REALTIME UPDATE (LISTEN PERUBAHAN DATA)
   useEffect(() => {
-    const handleUpdate = () => {
-      const fresh = getReports();
-      setReports([...fresh]); // 🔥 PAKSA RE-RENDER
+    const fetchReports = async () => {
+      try {
+        const token = localStorage.getItem("admin_token");
+
+        if (!token) return;
+
+        const response = await fetch("http://localhost:5000/api/reports", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.log(data.message);
+          return;
+        }
+
+        setReports(data);
+      } catch (err) {
+        console.log(err);
+      }
     };
 
-    window.addEventListener("reportUpdated", handleUpdate);
-    window.addEventListener("storage", handleUpdate); // 🔥 TAMBAHAN PENTING
+    fetchReports();
 
-    return () => {
-      window.removeEventListener("reportUpdated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
+    const interval = setInterval(() => {
+      fetchReports();
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // 📱 RESPONSIVE SIDEBAR
@@ -99,13 +138,18 @@ const AdminDashboard = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const filteredReports = reports.filter((r) => {
-    const statusAdmin = r.status === "Terkirim" ? "Belum Diproses" : r.status;
+  const filteredReports = reports
+    .filter((r) => {
+      const statusAdmin = r.status === "Terkirim" ? "Belum Diproses" : r.status;
 
-    if (filterStatus === "Semua") return true;
+      if (filterStatus === "Semua") return true;
 
-    return statusAdmin === filterStatus;
-  });
+      return statusAdmin === filterStatus;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
 
   const getEmptyMessage = () => {
     if (reports.length === 0) {
@@ -225,7 +269,19 @@ const AdminDashboard = () => {
                   </h3>
                 </div>
                 <div style={styles.mapContent}>
-                  <MapView markers={reports} />
+                  <MapView
+                    markers={reports
+                      .filter(
+                        (r) =>
+                          !isNaN(Number(r.latitude)) &&
+                          !isNaN(Number(r.longitude)),
+                      )
+                      .map((r) => ({
+                        ...r,
+                        lat: Number(r.latitude),
+                        lng: Number(r.longitude),
+                      }))}
+                  />
                 </div>
               </div>
             </div>
@@ -314,7 +370,7 @@ const AdminDashboard = () => {
                             >
                               <td style={styles.td}>{i + 1}</td>
                               <td style={{ ...styles.td, paddingLeft: "10px" }}>
-                                {r.roadName}
+                                {r.road_name}
                               </td>
 
                               <td style={styles.td}>
@@ -374,12 +430,16 @@ const AdminDashboard = () => {
                     <div style={{ flex: 1, maxWidth: "500px" }}>
                       {/* 🔥 LIST GAMBAR */}
                       <div style={styles.imagePreviewBox}>
-                        {selectedReport.images?.length > 0 ? (
+                        {selectedReport.image_url?.length > 0 ? (
                           <div style={styles.imageWrapper}>
                             <div
                               style={styles.imageHoverBox}
                               onClick={() => {
-                                setPreviewImages(selectedReport.images);
+                                setPreviewImages(
+                                  selectedReport.image_url.map(
+                                    (img) => `http://localhost:5000/${img}`,
+                                  ),
+                                );
                                 setCurrentIndex(0);
                               }}
                               onMouseEnter={(e) => {
@@ -396,7 +456,7 @@ const AdminDashboard = () => {
                               }}
                             >
                               <img
-                                src={selectedReport.images[0]}
+                                src={`http://localhost:5000/${selectedReport.image_url[0]}`}
                                 style={styles.thumbnailLarge}
                               />
 
@@ -406,9 +466,9 @@ const AdminDashboard = () => {
                               </div>
                             </div>
 
-                            {selectedReport.images.length > 1 && (
+                            {selectedReport.image_url.length > 1 && (
                               <small style={styles.morePhoto}>
-                                +{selectedReport.images.length - 1}
+                                +{selectedReport.image_url.length - 1}
                               </small>
                             )}
                           </div>
@@ -472,35 +532,37 @@ const AdminDashboard = () => {
                         <div style={styles.infoRow}>
                           <span style={styles.label}>Nama:</span>
                           <span style={styles.value}>
-                            {selectedReport.userName || "-"}
+                            {selectedReport.user_name || "-"}
                           </span>
                         </div>
 
                         <div style={styles.infoRow}>
                           <span style={styles.label}>Email:</span>
                           <span style={styles.value}>
-                            {selectedReport.userEmail || "-"}
+                            {selectedReport.user_email || "-"}
                           </span>
                         </div>
 
                         <div style={styles.infoRow}>
                           <span style={styles.label}>No HP:</span>
                           <span style={styles.value}>
-                            {selectedReport.userPhone || "-"}
+                            {selectedReport.user_phone || "-"}
                           </span>
                         </div>
 
                         <div style={styles.infoRow}>
                           <span style={styles.label}>Tanggal:</span>
                           <span style={styles.value}>
-                            {selectedReport.date || "-"}
+                            {new Date(
+                              selectedReport.created_at,
+                            ).toLocaleDateString("id-ID") || "-"}
                           </span>
                         </div>
 
                         <div style={styles.infoRow}>
                           <span style={styles.label}>Tingkat Kerusakan:</span>
                           <span style={styles.value}>
-                            {selectedReport.damage || "-"}
+                            {selectedReport.damage_level || "-"}
                           </span>
                         </div>
 
@@ -534,7 +596,7 @@ const AdminDashboard = () => {
                       <div style={styles.infoRow}>
                         <span style={styles.label}>Titik Lokasi:</span>
                         <span style={styles.valueLocation}>
-                          {selectedReport.roadName || "-"}
+                          {selectedReport.road_name || "-"}
                         </span>
                       </div>
 
@@ -546,7 +608,15 @@ const AdminDashboard = () => {
                       </div>
 
                       <div style={styles.modalMap}>
-                        <MapView markers={[selectedReport]} />
+                        <MapView
+                          markers={[
+                            {
+                              ...selectedReport,
+                              lat: Number(selectedReport.latitude),
+                              lng: Number(selectedReport.longitude),
+                            },
+                          ]}
+                        />
                       </div>
 
                       <div style={styles.adminPanel}>
@@ -575,20 +645,55 @@ const AdminDashboard = () => {
 
                           <button
                             style={{ ...styles.saveBtn, flex: 1 }}
-                            onClick={() => {
+                            onClick={async () => {
                               if (!selectedReport) return;
 
-                              updateReportStatus(selectedReport.id, newStatus);
+                              try {
+                                const token =
+                                  localStorage.getItem("admin_token");
 
-                              setSelectedReport({
-                                ...selectedReport,
-                                status: newStatus,
-                              });
+                                const response = await fetch(
+                                  `http://localhost:5000/api/reports/${selectedReport.id}/status`,
+                                  {
+                                    method: "PATCH",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({
+                                      status: newStatus,
+                                    }),
+                                  },
+                                );
 
-                              showToast(
-                                "Status berhasil diperbarui",
-                                "success",
-                              );
+                                const data = await response.json();
+
+                                if (!response.ok) {
+                                  alert(data.message);
+                                  return;
+                                }
+
+                                setReports((prev) =>
+                                  prev.map((item) =>
+                                    item.id === selectedReport.id
+                                      ? { ...item, status: newStatus }
+                                      : item,
+                                  ),
+                                );
+
+                                setSelectedReport({
+                                  ...selectedReport,
+                                  status: newStatus,
+                                });
+
+                                showToast(
+                                  "Status berhasil diperbarui",
+                                  "success",
+                                );
+                              } catch (err) {
+                                console.log(err);
+                                alert("Terjadi kesalahan server");
+                              }
                             }}
                             onMouseEnter={(e) =>
                               (e.currentTarget.style.background =
@@ -641,7 +746,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {confirmDeleteId && (
+        {confirmDeleteId !== null && (
           <div style={styles.modalOverlay}>
             <div style={styles.confirmBox}>
               <h3 style={{ marginBottom: "10px" }}>Hapus Laporan?</h3>
@@ -662,21 +767,43 @@ const AdminDashboard = () => {
                 {/* DELETE */}
                 <button
                   style={styles.deleteConfirmBtn}
-                  onClick={() => {
-                    deleteReport(confirmDeleteId);
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem("admin_token");
 
-                    setReports((prev) =>
-                      prev.filter((item) => item.id !== confirmDeleteId),
-                    );
+                      const response = await fetch(
+                        `http://localhost:5000/api/reports/${confirmDeleteId}`,
+                        {
+                          method: "DELETE",
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                          },
+                        },
+                      );
 
-                    showToast("Laporan berhasil dihapus", "delete");
+                      const data = await response.json();
 
-                    if (selectedReport?.id === confirmDeleteId) {
-                      setOpenModal(false);
-                      setSelectedReport(null);
+                      if (!response.ok) {
+                        alert(data.message);
+                        return;
+                      }
+
+                      setReports((prev) =>
+                        prev.filter((item) => item.id !== confirmDeleteId),
+                      );
+
+                      showToast("Laporan berhasil dihapus", "delete");
+
+                      if (selectedReport?.id === confirmDeleteId) {
+                        setOpenModal(false);
+                        setSelectedReport(null);
+                      }
+
+                      setConfirmDeleteId(null);
+                    } catch (err) {
+                      console.log(err);
+                      alert("Terjadi kesalahan server");
                     }
-
-                    setConfirmDeleteId(null);
                   }}
                 >
                   Hapus

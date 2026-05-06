@@ -1,18 +1,21 @@
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
-import { getReports } from "../../utils/reportStorage";
 import { useState, useEffect } from "react";
 
+type Report = {
+  id: number;
+  road_name: string;
+  landmark: string;
+  damage_level: string;
+  status: string;
+  latitude: string;
+  longitude: string;
+  image_url: string[];
+  created_at: string;
+};
+
 const ReportHistory = () => {
-  const user = JSON.parse(localStorage.getItem("registeredUser") || "{}");
-  const mode = localStorage.getItem("userMode");
-
-  const initialReports =
-    mode === "guest" || !user?.email
-      ? []
-      : getReports().filter((r) => r.userEmail === user.email);
-
-  const [reports, setReports] = useState(initialReports);
+  const [reports, setReports] = useState<Report[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -20,41 +23,41 @@ const ReportHistory = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
-    const handleUpdate = () => {
-      const mode = localStorage.getItem("userMode");
-      const user = JSON.parse(localStorage.getItem("registeredUser") || "{}");
+    const fetchMyReports = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-      const allReports = getReports();
+        if (!token) return;
 
-      // 🔥 TAMU = KOSONG
-      if (mode === "guest") {
-        setReports([]);
-        return;
+        const response = await fetch("http://localhost:5000/api/reports/my", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.log(data.message);
+          return;
+        }
+
+        setReports(data);
+      } catch (err) {
+        console.log(err);
       }
-
-      // 🔥 USER INVALID = KOSONG
-      if (!user?.email) {
-        setReports([]);
-        return;
-      }
-
-      // 🔥 FILTER USER
-      const myReports = allReports.filter((r) => r.userEmail === user.email);
-
-      setReports(myReports);
     };
 
-    // 🔥 LISTENER REALTIME
-    window.addEventListener("reportUpdated", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
+    // 🔥 fetch pertama
+    fetchMyReports();
 
-    // 🔥 RUN AWAL
-    handleUpdate();
+    // 🔥 realtime polling
+    const interval = setInterval(() => {
+      fetchMyReports();
+    }, 1000);
 
-    return () => {
-      window.removeEventListener("reportUpdated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
+    // 🔥 cleanup
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -109,83 +112,94 @@ const ReportHistory = () => {
             {reports.length === 0 ? (
               <div style={styles.empty}>Belum ada laporan 😢</div>
             ) : (
-              reports.map((item, i) => (
-                <div
-                  key={i}
-                  style={styles.row(isMobile)}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "rgba(148,163,184,0.05)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
-                >
-                  <span>
-                    {isMobile && <b>Tanggal: </b>}
-                    {item.date}
-                  </span>
-
-                  <span style={styles.location}>
-                    {isMobile && <b>Lokasi: </b>}
-                    {item.roadName}
-                    {item.landmark && ` (${item.landmark})`}
-                  </span>
-
-                  {/* 🔥 FOTO */}
-                  <span style={styles.photoCell(isMobile)}>
-                    {isMobile && <b>Foto: </b>}
-
-                    {item.images && item.images.length > 0 ? (
-                      <div style={styles.imageWrapper}>
-                        <img
-                          src={item.images[0]}
-                          style={styles.thumbnail}
-                          onClick={() => {
-                            setPreviewImages(item.images);
-                            setCurrentIndex(0);
-                          }}
-                        />
-
-                        {item.images.length > 1 && (
-                          <small style={styles.morePhoto}>
-                            +{item.images.length - 1}
-                          </small>
-                        )}
-                      </div>
-                    ) : (
-                      <span style={{ color: "#64748b" }}>-</span>
-                    )}
-                  </span>
-                  <span style={{ textAlign: isMobile ? "left" : "right" }}>
-                    {isMobile && <b>Kerusakan: </b>}
-                    {item.damage}
-                  </span>
-
-                  <span style={{ textAlign: isMobile ? "left" : "right" }}>
-                    {isMobile && <b>Status: </b>}
-                    <span
-                      style={{
-                        ...styles.badge,
-                        backgroundColor:
-                          item.status === "Selesai"
-                            ? "rgba(34,197,94,0.2)"
-                            : item.status === "Diproses"
-                              ? "rgba(234,179,8,0.2)"
-                              : "rgba(59,130,246,0.2)",
-                        color:
-                          item.status === "Selesai"
-                            ? "#22c55e"
-                            : item.status === "Diproses"
-                              ? "#facc15"
-                              : "#3b82f6",
-                      }}
-                    >
-                      {item.status}
+              [...reports]
+                .sort(
+                  (a, b) =>
+                    new Date(a.created_at).getTime() -
+                    new Date(b.created_at).getTime(),
+                )
+                .map((item, i) => (
+                  <div
+                    key={i}
+                    style={styles.row(isMobile)}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        "rgba(148,163,184,0.05)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
+                  >
+                    <span>
+                      {isMobile && <b>Tanggal: </b>}
+                      {new Date(item.created_at).toLocaleDateString("id-ID")}
                     </span>
-                  </span>
-                </div>
-              ))
+
+                    <span style={styles.location}>
+                      {isMobile && <b>Lokasi: </b>}
+                      {item.road_name}
+                      {item.landmark && ` (${item.landmark})`}
+                    </span>
+
+                    {/* 🔥 FOTO */}
+                    <span style={styles.photoCell(isMobile)}>
+                      {isMobile && <b>Foto: </b>}
+
+                      {item.image_url && item.image_url.length > 0 ? (
+                        <div style={styles.imageWrapper}>
+                          <img
+                            src={`http://localhost:5000/${item.image_url[0]}`}
+                            style={styles.thumbnail}
+                            onClick={() => {
+                              setPreviewImages(
+                                item.image_url.map(
+                                  (img: string) =>
+                                    `http://localhost:5000/${img}`,
+                                ),
+                              );
+                              setCurrentIndex(0);
+                            }}
+                          />
+
+                          {item.image_url.length > 1 && (
+                            <small style={styles.morePhoto}>
+                              +{item.image_url.length - 1}
+                            </small>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: "#64748b" }}>-</span>
+                      )}
+                    </span>
+                    <span style={{ textAlign: isMobile ? "left" : "right" }}>
+                      {isMobile && <b>Kerusakan: </b>}
+                      {item.damage_level}
+                    </span>
+
+                    <span style={{ textAlign: isMobile ? "left" : "right" }}>
+                      {isMobile && <b>Status: </b>}
+                      <span
+                        style={{
+                          ...styles.badge,
+                          backgroundColor:
+                            item.status === "Selesai"
+                              ? "rgba(34,197,94,0.2)"
+                              : item.status === "Diproses"
+                                ? "rgba(234,179,8,0.2)"
+                                : "rgba(59,130,246,0.2)",
+                          color:
+                            item.status === "Selesai"
+                              ? "#22c55e"
+                              : item.status === "Diproses"
+                                ? "#facc15"
+                                : "#3b82f6",
+                        }}
+                      >
+                        {item.status}
+                      </span>
+                    </span>
+                  </div>
+                ))
             )}
           </div>
         </div>

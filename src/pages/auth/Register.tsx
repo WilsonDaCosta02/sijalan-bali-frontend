@@ -16,34 +16,55 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = () => {
-    if (!name || !email || !password || !confirmPassword) {
-      alert("Semua field wajib diisi");
-      return;
+  const handleRegister = async () => {
+    try {
+      if (!name || !email || !phone || !password || !confirmPassword) {
+        alert("Semua field wajib diisi");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        alert("Password tidak sama");
+        return;
+      }
+
+      setLoading(true);
+
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Register gagal");
+        return;
+      }
+
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan server");
+    } finally {
+      setLoading(false);
     }
-
-    if (password !== confirmPassword) {
-      alert("Password tidak sama");
-      return;
-    }
-
-    // 🔥 SIMPAN KE LOCAL STORAGE
-    const userData = {
-      name,
-      email,
-      phone,
-      password,
-    };
-
-    localStorage.setItem("registeredUser", JSON.stringify(userData));
-
-    setShowSuccess(true);
-
-    setTimeout(() => {
-      navigate("/login", { replace: true });
-    }, 2000);
   };
 
   return (
@@ -151,7 +172,7 @@ const Register = () => {
           </div>
 
           <button className="auth-btn-primary" onClick={handleRegister}>
-            Daftar
+            {loading ? "Loading..." : "Daftar"}
           </button>
 
           <button
