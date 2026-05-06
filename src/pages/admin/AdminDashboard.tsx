@@ -4,7 +4,7 @@ import MapView from "../../components/MapView";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Trash2 } from "lucide-react";
-
+import { API_URL } from "../../config/api";
 import petaIcon from "../../assets/peta.png";
 import folderIcon from "../../assets/folder.png";
 import toolsIcon from "../../assets/tools.png";
@@ -95,7 +95,7 @@ const AdminDashboard = () => {
 
         if (!token) return;
 
-        const response = await fetch("http://localhost:5000/api/reports", {
+        const response = await fetch(`${API_URL}/api/reports`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -437,7 +437,7 @@ const AdminDashboard = () => {
                               onClick={() => {
                                 setPreviewImages(
                                   selectedReport.image_url.map(
-                                    (img) => `http://localhost:5000/${img}`,
+                                    (img) => `${API_URL}/${img}`,
                                   ),
                                 );
                                 setCurrentIndex(0);
@@ -456,7 +456,7 @@ const AdminDashboard = () => {
                               }}
                             >
                               <img
-                                src={`http://localhost:5000/${selectedReport.image_url[0]}`}
+                                src={`${API_URL}/${selectedReport.image_url[0]}`}
                                 style={styles.thumbnailLarge}
                               />
 
@@ -653,7 +653,7 @@ const AdminDashboard = () => {
                                   localStorage.getItem("admin_token");
 
                                 const response = await fetch(
-                                  `http://localhost:5000/api/reports/${selectedReport.id}/status`,
+                                  `${API_URL}/api/reports/${selectedReport.id}/status`,
                                   {
                                     method: "PATCH",
                                     headers: {
@@ -772,7 +772,7 @@ const AdminDashboard = () => {
                       const token = localStorage.getItem("admin_token");
 
                       const response = await fetch(
-                        `http://localhost:5000/api/reports/${confirmDeleteId}`,
+                        `${API_URL}/api/reports/${confirmDeleteId}`,
                         {
                           method: "DELETE",
                           headers: {

@@ -5,6 +5,7 @@ import Background from "../../components/Background";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { API_URL } from "../../config/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -70,20 +71,17 @@ const Login = () => {
 
                 setLoading(true);
 
-                const response = await fetch(
-                  "http://localhost:5000/api/auth/login",
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-
-                    body: JSON.stringify({
-                      email,
-                      password,
-                    }),
+                const response = await fetch(`${API_URL}/auth/login`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
                   },
-                );
+
+                  body: JSON.stringify({
+                    email,
+                    password,
+                  }),
+                });
 
                 const data = await response.json();
 

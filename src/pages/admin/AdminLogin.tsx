@@ -5,6 +5,7 @@ import userIcon from "../../assets/user-auth-icon.png";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { API_URL } from "../../config/api";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ const AdminLogin = () => {
             onClick={async () => {
               try {
                 const response = await fetch(
-                  "http://localhost:5000/api/auth/admin-login",
+                  `${API_URL}/api/auth/admin-login`,
                   {
                     method: "POST",
                     headers: {

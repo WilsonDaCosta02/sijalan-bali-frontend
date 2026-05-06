@@ -3,6 +3,7 @@ import Sidebar from "../../components/Sidebar";
 import { useState, useEffect } from "react";
 import userIcon from "../../assets/user-auth-icon.png";
 import { Mail, Lock } from "lucide-react";
+import { API_URL } from "../../config/api";
 
 const Profile = () => {
   const [loading, setLoading] = useState(true);
@@ -35,7 +36,7 @@ const Profile = () => {
 
         if (!token) return;
 
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

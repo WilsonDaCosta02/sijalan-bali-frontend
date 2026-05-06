@@ -8,6 +8,7 @@ import MapView from "../../components/MapView";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { History } from "lucide-react";
+import { API_URL } from "../../config/api";
 
 type Report = {
   id: number;
@@ -52,7 +53,7 @@ const Dashboard = () => {
 
         if (!token) return;
 
-        const response = await fetch("http://localhost:5000/api/reports/my", {
+        const response = await fetch(`${API_URL}/api/reports/my`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

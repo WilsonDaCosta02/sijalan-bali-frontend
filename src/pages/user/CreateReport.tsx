@@ -2,6 +2,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import MapView from "../../components/MapView";
 import { useState, useEffect } from "react";
+import { API_URL } from "../../config/api";
 
 type Suggestion = {
   display_name: string;
@@ -252,7 +253,7 @@ const CreateReport = () => {
         formData.append("images", file);
       });
 
-      const response = await fetch("http://localhost:5000/api/reports", {
+      const response = await fetch(`${API_URL}/api/reports`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

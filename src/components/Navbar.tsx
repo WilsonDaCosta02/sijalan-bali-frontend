@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
+import { API_URL } from "../config/api";
 
 type NavbarProps = {
   setOpenSidebar: (value: boolean) => void;
@@ -38,7 +39,7 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
 
         if (!token) return;
 
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

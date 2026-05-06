@@ -1,6 +1,7 @@
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import { useState, useEffect } from "react";
+import { API_URL } from "../../config/api";
 
 type Report = {
   id: number;
@@ -29,7 +30,7 @@ const ReportHistory = () => {
 
         if (!token) return;
 
-        const response = await fetch("http://localhost:5000/api/reports/my", {
+        const response = await fetch(`${API_URL}/api/reports/my`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -148,13 +149,12 @@ const ReportHistory = () => {
                       {item.image_url && item.image_url.length > 0 ? (
                         <div style={styles.imageWrapper}>
                           <img
-                            src={`http://localhost:5000/${item.image_url[0]}`}
+                            src={`${API_URL}/${item.image_url[0]}`}
                             style={styles.thumbnail}
                             onClick={() => {
                               setPreviewImages(
                                 item.image_url.map(
-                                  (img: string) =>
-                                    `http://localhost:5000/${img}`,
+                                  (img: string) => `${API_URL}/${img}`,
                                 ),
                               );
                               setCurrentIndex(0);
