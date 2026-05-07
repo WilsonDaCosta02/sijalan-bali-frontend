@@ -19,7 +19,9 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
   const location = useLocation();
   const path = location.pathname;
   const isAuthPage = path === "/" || path === "/login" || path === "/register";
-  const [username, setUsername] = useState("User");
+  const [username, setUsername] = useState(
+    localStorage.getItem("username") || "User",
+  );
   const [hoverUser, setHoverUser] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
