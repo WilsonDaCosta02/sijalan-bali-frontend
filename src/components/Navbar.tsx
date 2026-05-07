@@ -56,6 +56,12 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
     };
 
     fetchProfile();
+
+    window.addEventListener("profileUpdated", fetchProfile);
+
+    return () => {
+      window.removeEventListener("profileUpdated", fetchProfile);
+    };
   }, []);
 
   useEffect(() => {

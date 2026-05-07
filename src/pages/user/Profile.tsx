@@ -9,13 +9,23 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState("");
-
+  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [hoverSave, setHoverSave] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const s = styles(isMobile);
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+
+    setTimeout(() => {
+      setToast(null);
+    }, 2500);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -58,6 +68,57 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
+  const handleUpdateProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Token tidak ditemukan");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/auth/update-profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.message || "Gagal update profil", "error");
+        return;
+      }
+
+      // 🔥 update localStorage
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      user.name = name;
+      user.email = email;
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      localStorage.setItem("username", name);
+
+      window.dispatchEvent(new Event("profileUpdated"));
+
+      showToast("Profil berhasil diperbarui", "success");
+
+      setPassword("");
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan server", "error");
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -98,10 +159,6 @@ const Profile = () => {
                   onChange={(e) => setName(e.target.value)}
                   style={s.input}
                 />
-
-                <button className="btn-primary" style={{ width: "100%" }}>
-                  Ubah Nama
-                </button>
               </div>
 
               {/* RIGHT */}
@@ -119,13 +176,17 @@ const Profile = () => {
                 <label style={s.label}>Password</label>
                 <div style={s.inputGroup}>
                   <Lock size={16} color="#ffffff" />
-                  <input value="********" readOnly style={s.inputField} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan password baru"
+                    style={s.inputField}
+                  />
                 </div>
 
-                <button className="btn-primary full">Ubah Email</button>
-                <button className="btn-primary full">Ubah Password</button>
-
                 <button
+                  onClick={handleUpdateProfile}
                   style={{
                     ...s.saveBtn,
                     backgroundColor: hoverSave ? "#4b5563" : "#6b7280",
@@ -141,6 +202,37 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "14px 20px",
+            borderRadius: "999px",
+            background:
+              toast.type === "success"
+                ? "rgba(20,184,166,0.95)"
+                : "rgba(239,68,68,0.95)",
+            color: "white",
+            fontSize: "14px",
+            fontWeight: "500",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+            backdropFilter: "blur(10px)",
+            zIndex: 99999,
+          }}
+        >
+          <span style={{ fontSize: "16px" }}>
+            {toast.type === "success" ? "✅" : "⚠️"}
+          </span>
+
+          {toast.message}
+        </div>
+      )}
     </>
   );
 };
@@ -163,12 +255,13 @@ const styles = (isMobile: boolean): { [key: string]: React.CSSProperties } => ({
   card: {
     display: "flex",
     flexDirection: isMobile ? "column" : "row",
-    gap: isMobile ? "20px" : "40px",
+    gap: isMobile ? "0px" : "40px",
     backgroundColor: "#1E293B",
-    padding: isMobile ? "20px" : "32px",
+    padding: isMobile ? "30px" : "32px",
     borderRadius: "18px",
     width: "100%",
     maxWidth: "750px",
+    height: "fit-content",
   },
 
   left: {
@@ -182,10 +275,11 @@ const styles = (isMobile: boolean): { [key: string]: React.CSSProperties } => ({
   },
 
   right: {
-    flex: "2 1 300px",
+    flex: isMobile ? "unset" : "2 1 300px",
     display: "flex",
     flexDirection: "column",
-    gap: "14px",
+    gap: isMobile ? "10px" : "14px",
+    marginTop: isMobile ? "-18px" : "0px",
   },
 
   label: {
