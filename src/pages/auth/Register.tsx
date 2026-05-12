@@ -126,7 +126,7 @@ const Register = () => {
               type="text"
               placeholder="08xxxxxxxx"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
             />
           </div>
 
@@ -149,6 +149,17 @@ const Register = () => {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </span>
             </div>
+
+            <p
+              style={{
+                fontSize: "9px",
+                color: "#94A3B8",
+                marginTop: "0px",
+                marginBottom: "10px",
+              }}
+            >
+              Password minimal 8 karakter, mengandung huruf besar dan angka
+            </p>
           </div>
 
           {/* CONFIRM PASSWORD */}

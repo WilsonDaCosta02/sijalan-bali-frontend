@@ -7,11 +7,11 @@
 
 .auth-header {
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: -20px;
 }
 
 .auth-header h2 {
-  margin-bottom: 8px;
+  margin-bottom: -10px;
 }
 
 .auth-header p {
@@ -19,14 +19,16 @@
 }
 
 .auth-card {
-  margin: 24px auto; /* 🔥 lebih aman dari translate */
+  margin: 20px auto;
   z-index: 2;
 
   background: rgba(255, 255, 255, 0.05);
-  padding: 24px; /* 🔥 dari 32 → 24 */
+  padding: 20px;
   border-radius: 14px;
+
   width: 100%;
-  max-width: 320px; /* 🔥 dari 360 → 320 */
+  max-width: 300px;
+
   backdrop-filter: blur(10px);
 }
 
@@ -35,7 +37,8 @@
 }
 
 .auth-card p {
-  margin-bottom: 20px;
+  margin-top: -10px;
+  margin-bottom: 25px;
   opacity: 0.7;
 }
 
@@ -53,7 +56,7 @@
 .auth-icon {
   display: flex;
   justify-content: center;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .auth-icon img {

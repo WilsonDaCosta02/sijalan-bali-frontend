@@ -93,7 +93,12 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
         <h2 style={styles.title}>SIJALAN Bali</h2>
       </div>
 
-      <div style={styles.right}>
+      <div
+        style={{
+          ...styles.right,
+          gap: isMobile ? "10px" : "20px",
+        }}
+      >
         {/* 🌗 DARK MODE */}
         <div onClick={() => setDarkMode(!darkMode)} style={styles.iconWrapper}>
           {darkMode ? (
@@ -122,7 +127,17 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
               onClick={() => navigate("/profile")}
             >
               <User size={18} />
-              <span>{username}</span>
+              <span
+                style={{
+                  maxWidth: isMobile ? "90px" : "160px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: "block",
+                }}
+              >
+                {username}
+              </span>
             </div>
           ) : (
             <button
@@ -149,7 +164,7 @@ const styles = {
     height: "60px",
     padding: "0 24px",
     borderBottom: "1px solid var(--divider-main)",
-    flexWrap: "wrap" as const, // 🔥 ini garisnya
+    flexWrap: "nowrap" as const, // 🔥 ini garisnya
   },
 
   left: {
@@ -157,6 +172,7 @@ const styles = {
     alignItems: "center",
     gap: "10px",
     marginLeft: "-15px",
+    minWidth: 0,
   },
 
   right: {
@@ -164,6 +180,7 @@ const styles = {
     alignItems: "center",
     gap: "20px",
     marginRight: "-15px",
+    flexShrink: 0,
   },
 
   iconWrapper: {
