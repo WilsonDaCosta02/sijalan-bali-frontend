@@ -2,7 +2,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import MapView from "../../components/MapView";
 import { useState, useEffect } from "react";
-import { API_URL } from "../../config/api";
+import { authFetch } from "../../utils/authFetch";
 
 type Suggestion = {
   display_name: string;
@@ -25,6 +25,7 @@ const CreateReport = () => {
   const [damage, setDamage] = useState("Rusak ringan");
   const [description, setDescription] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -167,7 +168,7 @@ const CreateReport = () => {
   };
 
   const searchAddress = async (query: string) => {
-    if (!query) {
+    if (query.trim().length < 3) {
       setSuggestions([]);
       return;
     }
@@ -206,12 +207,6 @@ const CreateReport = () => {
   };
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      alert("Silakan login terlebih dahulu");
-      return;
-    }
     if (images.length === 0) {
       alert("Foto belum diupload");
       return;
@@ -253,11 +248,8 @@ const CreateReport = () => {
         formData.append("images", file);
       });
 
-      const response = await fetch(`${API_URL}/api/reports`, {
+      const response = await authFetch("/api/reports", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
 
@@ -475,8 +467,19 @@ const CreateReport = () => {
                   <input
                     value={address}
                     onChange={(e) => {
-                      setAddress(e.target.value);
-                      searchAddress(e.target.value);
+                      const value = e.target.value;
+
+                      setAddress(value);
+
+                      if (searchTimeout) {
+                        clearTimeout(searchTimeout);
+                      }
+
+                      const timeout = window.setTimeout(() => {
+                        searchAddress(value);
+                      }, 500);
+
+                      setSearchTimeout(timeout);
                     }}
                     onBlur={() => {
                       if (isManualMode && address) {

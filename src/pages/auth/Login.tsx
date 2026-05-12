@@ -95,6 +95,8 @@ const Login = () => {
 
                 localStorage.setItem("user", JSON.stringify(data.user));
 
+                localStorage.setItem("userId", data.user.id);
+
                 localStorage.setItem("username", data.user.name);
 
                 localStorage.setItem("isLogin", "true");

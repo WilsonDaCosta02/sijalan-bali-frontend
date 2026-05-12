@@ -8,7 +8,7 @@ import MapView from "../../components/MapView";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { History } from "lucide-react";
-import { API_URL } from "../../config/api";
+import { authFetch } from "../../utils/authFetch";
 
 type Report = {
   id: number;
@@ -25,7 +25,13 @@ type Report = {
 const Dashboard = () => {
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<Report[]>(() => {
+    const userId = localStorage.getItem("userId");
+
+    const saved = localStorage.getItem(`myReports_${userId}`);
+
+    return saved ? JSON.parse(saved) : [];
+  });
   const total = reports.length;
   const diproses = reports.filter((r) => r.status === "Diproses").length;
   const selesai = reports.filter((r) => r.status === "Selesai").length;
@@ -49,15 +55,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        if (!token) return;
-
-        const response = await fetch(`${API_URL}/api/reports/my`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await authFetch("/api/reports/my");
 
         const data = await response.json();
 
@@ -67,6 +65,10 @@ const Dashboard = () => {
         }
 
         setReports(data);
+
+        const userId = localStorage.getItem("userId");
+
+        localStorage.setItem(`myReports_${userId}`, JSON.stringify(data));
       } catch (err) {
         console.log(err);
       }

@@ -2,6 +2,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import { useState, useEffect } from "react";
 import { API_URL } from "../../config/api";
+import { authFetch } from "../../utils/authFetch";
 
 type Report = {
   id: number;
@@ -16,7 +17,13 @@ type Report = {
 };
 
 const ReportHistory = () => {
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<Report[]>(() => {
+    const userId = localStorage.getItem("userId");
+
+    const saved = localStorage.getItem(`myReports_${userId}`);
+
+    return saved ? JSON.parse(saved) : [];
+  });
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -26,15 +33,7 @@ const ReportHistory = () => {
   useEffect(() => {
     const fetchMyReports = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        if (!token) return;
-
-        const response = await fetch(`${API_URL}/api/reports/my`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await authFetch("/api/reports/my");
 
         const data = await response.json();
 
@@ -44,6 +43,9 @@ const ReportHistory = () => {
         }
 
         setReports(data);
+
+        const userId = localStorage.getItem("userId");
+        localStorage.setItem(`myReports_${userId}`, JSON.stringify(data));
       } catch (err) {
         console.log(err);
       }

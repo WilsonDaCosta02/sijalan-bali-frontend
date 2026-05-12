@@ -3,14 +3,21 @@ import Sidebar from "../../components/Sidebar";
 import { useState, useEffect } from "react";
 import userIcon from "../../assets/user-auth-icon.png";
 import { Mail, Lock } from "lucide-react";
-import { API_URL } from "../../config/api";
+import { authFetch } from "../../utils/authFetch";
 
 const Profile = () => {
-  const [loading, setLoading] = useState(true);
+ const [name, setName] = useState(
+  localStorage.getItem("username") || ""
+);
 
-  const [name, setName] = useState("");
+const [email, setEmail] = useState(() => {
+  const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
+
+  return user.email || "";
+});
   const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
   const [hoverSave, setHoverSave] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -42,15 +49,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        if (!token) return;
-
-        const response = await fetch(`${API_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await authFetch("/api/auth/me");
 
         const data = await response.json();
 
@@ -60,8 +59,6 @@ const Profile = () => {
         }
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -70,20 +67,11 @@ const Profile = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        alert("Token tidak ditemukan");
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/api/auth/update-profile`, {
+      const response = await authFetch("/api/auth/update-profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
-
         body: JSON.stringify({
           name,
           email,
@@ -118,10 +106,6 @@ const Profile = () => {
       showToast("Terjadi kesalahan server", "error");
     }
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <>
