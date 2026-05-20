@@ -13,6 +13,7 @@ const AdminSidebar = ({ open, setOpen }: Props) => {
   const path = location.pathname;
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [hover, setHover] = useState(false);
 
   // 🔥 RESPONSIVE DETECT
@@ -81,20 +82,45 @@ const AdminSidebar = ({ open, setOpen }: Props) => {
         <div style={styles.divider}></div>
 
         {/* LOGOUT */}
-        <div
-          style={styles.logout}
-          onClick={() => {
-            localStorage.removeItem("admin_token");
-            localStorage.removeItem("admin_username");
-            localStorage.removeItem("userMode");
-
-            navigate("/admin-login");
-          }}
-        >
+        <div style={styles.logout} onClick={() => setShowLogoutConfirm(true)}>
           <LogOut size={18} />
           <span>Keluar</span>
         </div>
       </div>
+
+      {showLogoutConfirm && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.logoutModal}>
+            <h3 style={styles.modalTitle}>Keluar dari Dashboard?</h3>
+
+            <p style={styles.modalText}>
+              Anda yakin ingin keluar dari akun admin?
+            </p>
+
+            <div style={styles.modalActions}>
+              <button
+                style={styles.cancelBtn}
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                Batal
+              </button>
+
+              <button
+                style={styles.logoutBtn}
+                onClick={() => {
+                  localStorage.removeItem("admin_token");
+                  localStorage.removeItem("admin_username");
+                  localStorage.removeItem("userMode");
+
+                  navigate("/admin-login");
+                }}
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -146,6 +172,67 @@ const styles = {
     position: "absolute" as const, // 🔥 TAMBAH
     bottom: "80px", // 🔥 JARAK DARI BAWAH
     left: "20px", // 🔥 SESUAI PADDING SIDEBAR
+  },
+
+  modalOverlay: {
+    position: "fixed" as const,
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 99999,
+  },
+
+  logoutModal: {
+    width: "90%",
+    maxWidth: "340px",
+    background: "#1E293B",
+    borderRadius: "16px",
+    padding: "24px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+    textAlign: "center" as const,
+  },
+
+  modalTitle: {
+    margin: 0,
+    fontSize: "20px",
+    color: "white",
+    marginBottom: "10px",
+  },
+
+  modalText: {
+    color: "#94a3b8",
+    fontSize: "14px",
+    lineHeight: "1.5",
+    marginBottom: "22px",
+  },
+
+  modalActions: {
+    display: "flex",
+    gap: "10px",
+  },
+
+  cancelBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "transparent",
+    color: "#cbd5e1",
+    cursor: "pointer",
+  },
+
+  logoutBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#ef4444",
+    color: "white",
+    fontWeight: "600",
+    cursor: "pointer",
   },
 };
 

@@ -3,7 +3,7 @@ import Sidebar from "../../components/AdminSidebar";
 import MapView from "../../components/MapView";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Trash2, Search } from "lucide-react";
 import { API_URL } from "../../config/api";
 import petaIcon from "../../assets/peta.png";
 import folderIcon from "../../assets/folder.png";
@@ -33,6 +33,7 @@ type Report = {
 };
 
 const AdminDashboard = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -142,9 +143,16 @@ const AdminDashboard = () => {
     .filter((r) => {
       const statusAdmin = r.status === "Terkirim" ? "Belum Diproses" : r.status;
 
-      if (filterStatus === "Semua") return true;
+      // FILTER STATUS
+      const matchStatus =
+        filterStatus === "Semua" ? true : statusAdmin === filterStatus;
 
-      return statusAdmin === filterStatus;
+      // SEARCH NAMA JALAN
+      const matchSearch = (r.road_name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      return matchStatus && matchSearch;
     })
     .sort(
       (a, b) =>
@@ -303,20 +311,38 @@ const AdminDashboard = () => {
                   </div>
 
                   {/* 🔥 FILTER WRAPPER */}
+                  {/* 🔥 FILTER WRAPPER */}
                   {reports.length > 0 && (
-                    <div style={styles.filterWrapper}>
-                      <span style={styles.filterLabel}>Filter Status</span>
+                    <div style={styles.controlWrapper}>
+                      <div style={styles.searchWrapper}>
+                        <Search size={16} style={styles.searchIcon} />
 
-                      <select
-                        style={styles.filterSelect}
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                      >
-                        <option value="Semua">Semua Laporan</option>
-                        <option value="Belum Diproses">Belum Diproses</option>
-                        <option value="Diproses">Diproses</option>
-                        <option value="Selesai">Selesai</option>
-                      </select>
+                        <input
+                          type="text"
+                          placeholder="Cari nama jalan..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          style={styles.searchInput}
+                        />
+                      </div>
+
+                      <div style={styles.filterWrapper}>
+                        <span style={styles.filterLabel}>Filter Status</span>
+
+                        <select
+                          style={styles.filterSelect}
+                          value={filterStatus}
+                          onChange={(e) => setFilterStatus(e.target.value)}
+                        >
+                          <option value="Semua">Semua Laporan</option>
+
+                          <option value="Belum Diproses">Belum Diproses</option>
+
+                          <option value="Diproses">Diproses</option>
+
+                          <option value="Selesai">Selesai</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -325,14 +351,42 @@ const AdminDashboard = () => {
                   <table style={styles.table}>
                     <thead>
                       <tr>
-                        <th style={styles.th}>ID</th>
-                        <th style={{ ...styles.th, paddingLeft: "4px" }}>
+                        <th
+                          style={{
+                            ...styles.th,
+                            width: isMobile ? "10%" : "8%",
+                          }}
+                        >
+                          ID
+                        </th>
+
+                        <th
+                          style={{
+                            ...styles.th,
+                            width: isMobile ? "48%" : "55%",
+                            paddingLeft: "10px",
+                          }}
+                        >
                           Info Lokasi
                         </th>
-                        <th style={{ ...styles.th, paddingLeft: "20px" }}>
+
+                        <th
+                          style={{
+                            ...styles.th,
+                            width: isMobile ? "22%" : "20%",
+                            textAlign: "center",
+                          }}
+                        >
                           Status
                         </th>
-                        <th style={{ ...styles.th, paddingLeft: "20px" }}>
+
+                        <th
+                          style={{
+                            ...styles.th,
+                            width: isMobile ? "20%" : "17%",
+                            textAlign: "center",
+                          }}
+                        >
                           Aksi
                         </th>
                       </tr>
@@ -369,17 +423,45 @@ const AdminDashboard = () => {
                               }
                             >
                               <td style={styles.td}>{i + 1}</td>
-                              <td style={{ ...styles.td, paddingLeft: "10px" }}>
+                              <td
+                                style={{
+                                  ...styles.td,
+                                  paddingLeft: "0px",
+                                  fontWeight: "500",
+                                }}
+                              >
                                 {r.road_name}
                               </td>
 
-                              <td style={styles.td}>
-                                <span style={badgeStyle(statusAdmin)}>
-                                  {statusAdmin}
-                                </span>
+                              <td
+                                style={{
+                                  ...styles.td,
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <span
+                                    style={badgeStyle(statusAdmin, isMobile)}
+                                  >
+                                    {statusAdmin}
+                                  </span>
+                                </div>
                               </td>
 
-                              <td style={styles.td}>
+                              <td
+                                style={{
+                                  ...styles.td,
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                  paddingLeft: isMobile ? "8px" : "10px",
+                                }}
+                              >
                                 <div style={styles.actionGroup}>
                                   <div
                                     style={styles.viewBtn}
@@ -817,12 +899,13 @@ const AdminDashboard = () => {
   );
 };
 
-const badgeStyle = (status: string) => ({
-  padding: "4px 10px",
+const badgeStyle = (status: string, isMobile = false) => ({
+  padding: isMobile ? "3px 6px" : "4px 10px",
   borderRadius: "999px",
-  fontSize: "12px",
+  fontSize: isMobile ? "9px" : "12px",
   border: "1px solid currentColor",
   fontWeight: "500",
+  whiteSpace: "nowrap" as const,
   background:
     status === "Selesai"
       ? "rgba(34,197,94,0.2)"
@@ -917,10 +1000,9 @@ const styles = {
   },
 
   grid: {
-    display: "grid",
-    gridTemplateColumns: "1.2fr 1fr",
+    display: "flex",
+    flexDirection: "column" as const,
     gap: "24px",
-    alignItems: "start",
     marginTop: "10px",
   },
 
@@ -976,31 +1058,36 @@ const styles = {
   },
 
   td: {
-    padding: "12px 10px",
+    padding: "18px 10px",
     borderBottom: "1px solid rgba(255,255,255,0.05)",
-    whiteSpace: "nowrap", // 🔥 biar ga turun
-    overflow: "hidden", // 🔥 sembunyiin sisanya
-    textOverflow: "ellipsis", // 🔥 munculin "..."
-    maxWidth: "180px", // 🔥 penting (biar kepotong)
     color: "#e2e8f0",
+    fontSize: "15px",
   },
   tableHeader: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between", // 🔥 penting
-    gap: "10px",
+    flexDirection:
+      window.innerWidth < 768 ? ("column" as const) : ("row" as const),
+
+    alignItems:
+      window.innerWidth < 768 ? ("flex-start" as const) : ("center" as const),
+
+    justifyContent: "space-between",
+    gap: "14px",
     paddingBottom: "12px",
     marginBottom: "-5px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)", // 🔥 INI KUNCI
-  },
-  actionGroup: {
-    display: "flex",
-    gap: "8px",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
   },
 
+  actionGroup: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "4px",
+    transform: window.innerWidth < 768 ? "translateX(8px)" : "translateX(0px)",
+  },
   viewBtn: {
     background: "rgba(20,184,166,0.15)",
-    padding: "6px",
+    padding: window.innerWidth < 768 ? "3px" : "6px",
     borderRadius: "8px",
     cursor: "pointer",
     color: "#14b8a6",
@@ -1008,7 +1095,7 @@ const styles = {
 
   deleteBtnBox: {
     background: "rgba(239,68,68,0.15)",
-    padding: "6px",
+    padding: window.innerWidth < 768 ? "4px" : "6px",
     borderRadius: "8px",
     cursor: "pointer",
     color: "#ef4444",
@@ -1332,7 +1419,7 @@ const styles = {
   filterWrapper: {
     display: "flex",
     flexDirection: "column" as const,
-    alignItems: "flex-end", // 🔥 biar nempel kanan
+    alignItems: window.innerWidth < 768 ? "flex-start" : "flex-end", // 🔥 biar nempel kanan
   },
 
   filterLabel: {
@@ -1340,6 +1427,42 @@ const styles = {
     color: "#94a3b8",
     marginBottom: "4px",
     marginRight: "15px",
+  },
+  controlWrapper: {
+    display: "flex",
+
+    flexDirection:
+      window.innerWidth < 768 ? ("column" as const) : ("row" as const),
+
+    alignItems:
+      window.innerWidth < 768 ? ("stretch" as const) : ("flex-end" as const),
+
+    gap: "10px",
+
+    width: window.innerWidth < 768 ? "100%" : "auto",
+  },
+
+  searchInput: {
+    padding: "8px 14px 8px 38px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "#0F172A",
+    color: "white",
+    outline: "none",
+    fontSize: "13px",
+    width: window.innerWidth < 768 ? "100%" : "240px",
+  },
+  searchWrapper: {
+    position: "relative" as const,
+    display: "flex",
+    alignItems: "center",
+    width: window.innerWidth < 768 ? "100%" : "auto",
+  },
+  searchIcon: {
+    position: "absolute" as const,
+    left: "12px",
+    color: "#64748b",
+    pointerEvents: "none" as const,
   },
 };
 
