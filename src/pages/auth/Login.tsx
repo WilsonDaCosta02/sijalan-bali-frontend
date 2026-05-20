@@ -13,6 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   return (
     <>
@@ -103,9 +104,13 @@ const Login = () => {
 
                 localStorage.setItem("userMode", "user");
 
-                navigate("/dashboard", {
-                  replace: true,
-                });
+                setShowSuccess(true);
+
+                setTimeout(() => {
+                  navigate("/dashboard", {
+                    replace: true,
+                  });
+                }, 1500);
               } catch (err) {
                 console.error(err);
                 alert("Terjadi kesalahan server");
@@ -121,26 +126,131 @@ const Login = () => {
             style={{
               textAlign: "center",
               fontSize: "13px",
-              color: "#94a3b8",
+              color: "#fafcff",
               margin: "10px 0",
             }}
           >
             Belum punya akun?{" "}
             <span
-              onClick={() => navigate("/register", { replace: true })}
+              onClick={() =>
+                navigate("/register", {
+                  replace: true,
+                })
+              }
               style={{
-                color: "#3b82f6",
+                display: "inline-block",
+
+                marginLeft: "4px",
+
+                padding: "4px 10px",
+
+                borderRadius: "999px",
+
+                background: "rgba(59,130,246,0.35)",
+
+                color: "#91b9e7",
+
+                fontWeight: "600",
+
                 cursor: "pointer",
-                textDecoration: "underline",
+
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(34, 95, 194, 0.25)";
+
+                e.currentTarget.style.transform = "translateY(-1px)";
+
+                e.currentTarget.style.boxShadow =
+                  "0 4px 12px rgba(27, 101, 220, 0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(59,130,246,0.5)";
+
+                e.currentTarget.style.transform = "translateY(0)";
+
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               Daftar di sini
             </span>
           </p>
         </div>
+        {showSuccess && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.successModal}>
+              <div style={styles.successIcon}>✓</div>
+
+              <h3 style={styles.successTitle}>Berhasil Masuk</h3>
+
+              <p style={styles.successText}>Selamat datang di SIJALAN</p>
+            </div>
+          </div>
+        )}
       </Background>
     </>
   );
 };
+const styles = {
+  modalOverlay: {
+    position: "fixed" as const,
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
 
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+
+    zIndex: 99999,
+  },
+
+  successModal: {
+    width: "82%",
+    maxWidth: "280px",
+
+    background: "#1E293B",
+
+    borderRadius: "22px",
+
+    padding: "28px 24px",
+
+    textAlign: "center" as const,
+
+    border: "1px solid rgba(255,255,255,0.08)",
+
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+  },
+
+  successIcon: {
+    width: "60px",
+    height: "60px",
+
+    borderRadius: "50%",
+
+    background: "rgba(34,197,94,0.2)",
+
+    color: "#4ade80",
+
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+
+    fontSize: "30px",
+    fontWeight: "bold",
+
+    margin: "0 auto 16px",
+  },
+
+  successTitle: {
+    color: "white",
+    marginBottom: "8px",
+    fontSize: "20px",
+  },
+
+  successText: {
+    color: "#94a3b8",
+    fontSize: "14px",
+    lineHeight: "1.5",
+  },
+};
 export default Login;

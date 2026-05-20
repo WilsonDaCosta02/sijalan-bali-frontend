@@ -153,7 +153,7 @@ const Register = () => {
             <p
               style={{
                 fontSize: "9px",
-                color: "#94A3B8",
+                color: "#fafcff",
                 marginTop: "0px",
                 marginBottom: "10px",
               }}

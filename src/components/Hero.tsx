@@ -52,18 +52,21 @@ const styles = {
   content: {
     position: "relative" as const,
     zIndex: 2,
-    height: "100%",
+    minHeight: "90vh",
     display: "flex",
     flexDirection: "column" as const,
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center" as const,
     color: "white",
-    padding: "20px",
+
+    padding: window.innerWidth < 768 ? "40px 24px 90px" : "20px",
+
+    boxSizing: "border-box" as const,
   },
   icon: {
     width: "60px",
-    marginBottom: "20px",
+    marginBottom: "5px",
   },
   title: {
     fontSize: "clamp(20px, 5vw, 36px)", // 🔥 responsive auto
