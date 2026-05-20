@@ -14,6 +14,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   return (
     <>
@@ -66,7 +67,11 @@ const Login = () => {
             onClick={async () => {
               try {
                 if (!email || !password) {
-                  alert("Email dan password wajib diisi");
+                  setErrorMessage("Email dan password wajib diisi");
+
+                  setTimeout(() => {
+                    setErrorMessage("");
+                  }, 2500);
                   return;
                 }
 
@@ -87,7 +92,11 @@ const Login = () => {
                 const data = await response.json();
 
                 if (!response.ok) {
-                  alert(data.message || "Login gagal");
+                  setErrorMessage(data.message || "Login gagal");
+
+                  setTimeout(() => {
+                    setErrorMessage("");
+                  }, 2500);
                   return;
                 }
 
@@ -113,7 +122,11 @@ const Login = () => {
                 }, 1500);
               } catch (err) {
                 console.error(err);
-                alert("Terjadi kesalahan server");
+                setErrorMessage("Terjadi kesalahan server");
+
+                setTimeout(() => {
+                  setErrorMessage("");
+                }, 2500);
               } finally {
                 setLoading(false);
               }
@@ -176,6 +189,13 @@ const Login = () => {
             </span>
           </p>
         </div>
+        {errorMessage && (
+          <div style={styles.errorToast}>
+            <span style={styles.errorIcon}>!</span>
+
+            {errorMessage}
+          </div>
+        )}
         {showSuccess && (
           <div style={styles.modalOverlay}>
             <div style={styles.successModal}>
@@ -251,6 +271,49 @@ const styles = {
     color: "#94a3b8",
     fontSize: "14px",
     lineHeight: "1.5",
+  },
+  errorToast: {
+    position: "fixed" as const,
+
+    top: "90px",
+    left: "50%",
+
+    transform: "translateX(-50%)",
+
+    background: "#7f1d1d",
+
+    color: "white",
+
+    padding: "12px 18px",
+
+    borderRadius: "14px",
+
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+
+    fontSize: "14px",
+
+    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+
+    zIndex: 999999,
+
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+
+  errorIcon: {
+    width: "22px",
+    height: "22px",
+
+    borderRadius: "50%",
+
+    background: "rgba(255,255,255,0.15)",
+
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+
+    fontWeight: "bold",
   },
 };
 export default Login;

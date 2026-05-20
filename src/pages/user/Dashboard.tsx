@@ -39,6 +39,7 @@ const Dashboard = () => {
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginWarning, setShowLoginWarning] = useState(false);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,10 +64,28 @@ const Dashboard = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          console.log(data.message);
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("token");
+
+            localStorage.removeItem("isLogin");
+
+            localStorage.removeItem("user");
+
+            localStorage.removeItem("username");
+
+            localStorage.removeItem("userId");
+
+            setShowSessionExpired(true);
+
+            setTimeout(() => {
+              navigate("/login", {
+                replace: true,
+              });
+            }, 2000);
+          }
+
           return;
         }
-
         setReports(data);
 
         const userId = localStorage.getItem("userId");
@@ -370,6 +389,19 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+      {showSessionExpired && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.sessionModal}>
+            <div style={styles.sessionIcon}>⚠</div>
+
+            <h3 style={styles.sessionTitle}>Sesi Login Berakhir</h3>
+
+            <p style={styles.sessionText}>
+              Silakan login kembali untuk melanjutkan akses akun Anda.
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -625,6 +657,61 @@ const styles = {
     padding: "8px 10px",
     borderRadius: "8px",
     cursor: "pointer",
+  },
+  sessionModal: {
+    width: "82%",
+    maxWidth: "300px",
+
+    background: "#1E293B",
+
+    borderRadius: "22px",
+
+    padding: "28px 24px",
+
+    textAlign: "center" as const,
+
+    border: "1px solid rgba(255,255,255,0.08)",
+
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+  },
+
+  sessionIcon: {
+    width: "60px",
+    height: "60px",
+
+    borderRadius: "50%",
+
+    background: "rgba(234,179,8,0.2)",
+
+    color: "#facc15",
+
+    display: "flex",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    fontSize: "30px",
+
+    fontWeight: "bold",
+
+    margin: "0 auto 16px",
+  },
+
+  sessionTitle: {
+    color: "white",
+
+    marginBottom: "8px",
+
+    fontSize: "20px",
+  },
+
+  sessionText: {
+    color: "#94a3b8",
+
+    fontSize: "14px",
+
+    lineHeight: "1.5",
   },
 };
 
