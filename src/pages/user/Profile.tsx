@@ -6,18 +6,15 @@ import { Mail, Lock } from "lucide-react";
 import { authFetch } from "../../utils/authFetch";
 
 const Profile = () => {
- const [name, setName] = useState(
-  localStorage.getItem("username") || ""
-);
+  const [name, setName] = useState(localStorage.getItem("username") || "");
 
-const [email, setEmail] = useState(() => {
-  const user = JSON.parse(
-    localStorage.getItem("user") || "{}"
-  );
+  const [email, setEmail] = useState(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  return user.email || "";
-});
+    return user.email || "";
+  });
   const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [hoverSave, setHoverSave] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -67,6 +64,45 @@ const [email, setEmail] = useState(() => {
 
   const handleUpdateProfile = async () => {
     try {
+      // 🔥 jika isi password lama tapi password baru kosong
+      if (currentPassword && !password) {
+        showToast("Masukkan password baru", "error");
+
+        return;
+      }
+
+      // 🔥 jika isi password baru tapi password lama kosong
+      if (password && !currentPassword) {
+        showToast("Masukkan password lama terlebih dahulu", "error");
+
+        return;
+      }
+
+      // 🔥 password lama tidak boleh sama dengan password baru
+      if (currentPassword && password && currentPassword === password) {
+        showToast(
+          "Password baru tidak boleh sama dengan password lama",
+          "error",
+        );
+
+        return;
+      }
+      if (password) {
+        if (password.length < 8) {
+          showToast("Password minimal 8 karakter", "error");
+
+          return;
+        }
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9]).+$/;
+
+        if (!passwordRegex.test(password)) {
+          showToast("Password harus mengandung huruf besar dan angka", "error");
+
+          return;
+        }
+      }
+
       const response = await authFetch("/api/auth/update-profile", {
         method: "PUT",
         headers: {
@@ -75,6 +111,7 @@ const [email, setEmail] = useState(() => {
         body: JSON.stringify({
           name,
           email,
+          currentPassword,
           password,
         }),
       });
@@ -101,6 +138,7 @@ const [email, setEmail] = useState(() => {
       showToast("Profil berhasil diperbarui", "success");
 
       setPassword("");
+      setCurrentPassword("");
     } catch (err) {
       console.error(err);
       showToast("Terjadi kesalahan server", "error");
@@ -137,7 +175,7 @@ const [email, setEmail] = useState(() => {
                 <div style={s.avatarWrapper}>
                   <img src={userIcon} style={s.avatarImg} />
                 </div>
-
+                <label style={s.label}>Nama</label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -156,8 +194,20 @@ const [email, setEmail] = useState(() => {
                     style={s.inputField}
                   />
                 </div>
+                <label style={s.label}>Password Saat Ini</label>
 
-                <label style={s.label}>Password</label>
+                <div style={s.inputGroup}>
+                  <Lock size={16} color="#ffffff" />
+
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Masukkan password lama"
+                    style={s.inputField}
+                  />
+                </div>
+                <label style={s.label}>Password Baru</label>
                 <div style={s.inputGroup}>
                   <Lock size={16} color="#ffffff" />
                   <input

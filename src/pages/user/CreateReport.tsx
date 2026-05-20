@@ -1,7 +1,7 @@
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import MapView from "../../components/MapView";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { authFetch } from "../../utils/authFetch";
 
 type Suggestion = {
@@ -26,6 +26,7 @@ const CreateReport = () => {
   const [description, setDescription] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
+  const suggestionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -34,6 +35,23 @@ const CreateReport = () => {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionRef.current &&
+        !suggestionRef.current.contains(event.target as Node)
+      ) {
+        setSuggestions([]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const getLocation = () => {
@@ -399,6 +417,10 @@ const CreateReport = () => {
                                 setLatitude("");
                                 setLongitude("");
                                 setAddress("");
+                                setLandmark("");
+                                setDamage("Rusak ringan");
+                                setDescription("");
+                                setSuggestions([]);
                               }
                             }}
                           >
@@ -460,37 +482,68 @@ const CreateReport = () => {
                 <div style={{ ...styles.field, color: "#e2e8f0" }}>
                   {/* NAMA JALAN */}
 
-                  <div style={styles.field}>
+                  <div style={styles.field} ref={suggestionRef}>
                     <label style={styles.inputLabel}>Nama Jalan</label>
+
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                      }}
+                    >
+                      <input
+                        value={address}
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          setAddress(value);
+
+                          if (searchTimeout) {
+                            clearTimeout(searchTimeout);
+                          }
+
+                          const timeout = window.setTimeout(() => {
+                            searchAddress(value);
+                          }, 500);
+
+                          setSearchTimeout(timeout);
+                        }}
+                        onBlur={() => {
+                          if (isManualMode && address) {
+                            getCoordinatesFromAddress(address);
+                          }
+                        }}
+                        placeholder="Nama Jalan"
+                        style={{
+                          ...styles.input,
+                          width: "100%",
+                          boxSizing: "border-box",
+                        }}
+                      />
+
+                      {suggestions.length > 0 && (
+                        <div style={styles.suggestionBox}>
+                          {suggestions.map((item, i) => (
+                            <div
+                              key={i}
+                              style={styles.suggestionItem}
+                              onClick={() => {
+                                setAddress(item.display_name);
+                                setLatitude(item.lat);
+                                setLongitude(item.lon);
+                                setSuggestions([]);
+                              }}
+                            >
+                              {item.display_name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                  <input
-                    value={address}
-                    onChange={(e) => {
-                      const value = e.target.value;
-
-                      setAddress(value);
-
-                      if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                      }
-
-                      const timeout = window.setTimeout(() => {
-                        searchAddress(value);
-                      }, 500);
-
-                      setSearchTimeout(timeout);
-                    }}
-                    onBlur={() => {
-                      if (isManualMode && address) {
-                        getCoordinatesFromAddress(address);
-                      }
-                    }}
-                    placeholder="Nama Jalan"
-                    style={styles.input}
-                  />
                   <div style={styles.field}>
                     <label style={styles.inputLabel}>Lokasi</label>
+
                     <input
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
@@ -498,26 +551,6 @@ const CreateReport = () => {
                       style={styles.input}
                     />
                   </div>
-
-                  {suggestions.length > 0 && (
-                    <div style={styles.suggestionBox}>
-                      {suggestions.map((item, i) => (
-                        <div
-                          key={i}
-                          style={styles.suggestionItem}
-                          onClick={() => {
-                            setAddress(item.display_name);
-                            setLatitude(item.lat);
-                            setLongitude(item.lon);
-                            setSuggestions([]);
-                          }}
-                        >
-                          {item.display_name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                   {loadingLocation ? (
                     <small style={{ color: "#94a3b8", marginTop: "4px" }}>
                       Mengambil alamat...

@@ -8,6 +8,7 @@ import MapView from "../../components/MapView";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { History } from "lucide-react";
+import { API_URL } from "../../config/api";
 import { authFetch } from "../../utils/authFetch";
 
 type Report = {
@@ -35,6 +36,8 @@ const Dashboard = () => {
   const total = reports.length;
   const diproses = reports.filter((r) => r.status === "Diproses").length;
   const selesai = reports.filter((r) => r.status === "Selesai").length;
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginWarning, setShowLoginWarning] = useState(false);
   const navigate = useNavigate();
 
@@ -187,6 +190,7 @@ const Dashboard = () => {
             <div style={styles.rowHeader(isMobile)}>
               <span>Tanggal</span>
               <span>Lokasi</span>
+              <span style={{ textAlign: "center" }}>Foto</span>
               <span style={{ textAlign: "right" }}>Tingkat Kerusakan</span>
               <span style={{ textAlign: "right", paddingRight: "15px" }}>
                 Status
@@ -234,6 +238,36 @@ const Dashboard = () => {
                       {item.landmark && ` (${item.landmark})`}
                     </span>
 
+                    <span style={styles.photoCell(isMobile)}>
+                      {isMobile && <b>Foto: </b>}
+
+                      {item.image_url && item.image_url.length > 0 ? (
+                        <div style={styles.imageWrapper}>
+                          <img
+                            src={`${API_URL}/${item.image_url[0]}`}
+                            style={styles.thumbnail}
+                            onClick={() => {
+                              setPreviewImages(
+                                item.image_url.map(
+                                  (img) => `${API_URL}/${img}`,
+                                ),
+                              );
+
+                              setCurrentIndex(0);
+                            }}
+                          />
+
+                          {item.image_url.length > 1 && (
+                            <small style={styles.morePhoto}>
+                              +{item.image_url.length - 1}
+                            </small>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: "#64748b" }}>-</span>
+                      )}
+                    </span>
+
                     <span style={{ textAlign: isMobile ? "left" : "right" }}>
                       {isMobile && <b>Kerusakan: </b>}
                       {item.damage_level}
@@ -267,6 +301,41 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      {previewImages.length > 0 && (
+        <div style={styles.modalOverlay} onClick={() => setPreviewImages([])}>
+          <div
+            style={styles.previewWrapper}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img src={previewImages[currentIndex]} style={styles.fullPreview} />
+
+            {currentIndex > 0 && (
+              <button
+                style={styles.navLeft}
+                onClick={() => setCurrentIndex(currentIndex - 1)}
+              >
+                ◀
+              </button>
+            )}
+
+            {currentIndex < previewImages.length - 1 && (
+              <button
+                style={styles.navRight}
+                onClick={() => setCurrentIndex(currentIndex + 1)}
+              >
+                ▶
+              </button>
+            )}
+
+            <button
+              style={styles.closePreviewBtn}
+              onClick={() => setPreviewImages([])}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       {showLoginWarning && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -387,7 +456,7 @@ const styles = {
   },
   rowHeader: (isMobile: boolean): React.CSSProperties => ({
     display: isMobile ? "none" : "grid",
-    gridTemplateColumns: "1fr 2fr 1fr 1fr",
+    gridTemplateColumns: "1fr 2fr 1fr 1fr 1fr",
     padding: "10px 0",
     color: "#94a3b8",
     fontSize: "13px",
@@ -416,7 +485,7 @@ const styles = {
   },
   row: (isMobile: boolean): React.CSSProperties => ({
     display: "grid",
-    gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr 1fr 1fr",
+    gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr 1fr 1fr 1fr",
     padding: "14px 0",
     borderBottom: "1px solid #334155",
     alignItems: "start",
@@ -428,18 +497,6 @@ const styles = {
     borderRadius: "999px",
     fontSize: "12px",
     fontWeight: "500",
-  },
-  modalOverlay: {
-    position: "fixed" as const,
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.6)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999,
   },
 
   modal: {
@@ -476,6 +533,98 @@ const styles = {
     alignItems: "center",
     gap: "8px",
     marginBottom: "10px",
+  },
+  imageWrapper: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "flex-start",
+    marginBottom: "6px",
+  },
+
+  thumbnail: {
+    width: "70px",
+    height: "70px",
+    objectFit: "cover" as const,
+    borderRadius: "8px",
+    cursor: "pointer",
+  },
+
+  morePhoto: {
+    fontSize: "11px",
+    color: "#94a3b8",
+    marginTop: "2px",
+  },
+
+  photoCell: (isMobile: boolean): React.CSSProperties => ({
+    display: "flex",
+    flexDirection: isMobile ? "row" : "column",
+    alignItems: isMobile ? "flex-start" : "center",
+    justifyContent: isMobile ? "flex-start" : "center",
+    gap: "8px",
+  }),
+
+  previewWrapper: {
+    position: "relative" as const,
+  },
+
+  fullPreview: {
+    maxWidth: "90vw",
+    maxHeight: "85vh",
+    borderRadius: "12px",
+  },
+
+  closePreviewBtn: {
+    position: "absolute" as const,
+    top: "-10px",
+    right: "-10px",
+    backgroundColor: "red",
+    border: "none",
+    color: "white",
+    width: "30px",
+    height: "30px",
+    borderRadius: "50%",
+    cursor: "pointer",
+  },
+
+  modalOverlay: {
+    position: "fixed" as const,
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.8)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+
+  navLeft: {
+    position: "absolute" as const,
+    left: "10px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    border: "none",
+    color: "white",
+    fontSize: "18px",
+    padding: "8px 10px",
+    borderRadius: "8px",
+    cursor: "pointer",
+  },
+
+  navRight: {
+    position: "absolute" as const,
+    right: "10px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    border: "none",
+    color: "white",
+    fontSize: "18px",
+    padding: "8px 10px",
+    borderRadius: "8px",
+    cursor: "pointer",
   },
 };
 

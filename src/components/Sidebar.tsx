@@ -14,6 +14,7 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
   const location = useLocation();
   const path = location.pathname;
   const [showLoginWarning, setShowLoginWarning] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -26,12 +27,8 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-
-    navigate("/", { replace: true });
+    setShowLogoutConfirm(true);
   };
-
   return (
     <>
       {/* OVERLAY */}
@@ -183,6 +180,38 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
           </div>
         </div>
       </div>
+      {showLogoutConfirm && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.logoutModal}>
+            <h3 style={styles.modalTitle}>Keluar dari Akun?</h3>
+
+            <p style={styles.modalText}>Anda yakin ingin keluar dari akun?</p>
+
+            <div style={styles.modalActions}>
+              <button
+                style={styles.cancelBtn}
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                Batal
+              </button>
+
+              <button
+                style={styles.logoutBtn}
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("username");
+
+                  navigate("/", {
+                    replace: true,
+                  });
+                }}
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showLoginWarning && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -324,6 +353,56 @@ const styles = {
     border: "1px solid rgba(148,163,184,0.2)",
     backgroundColor: "#020617",
     color: "white",
+    cursor: "pointer",
+  },
+  logoutModal: {
+    width: "82%",
+    maxWidth: "290px",
+    background: "#1E293B",
+    borderRadius: "16px",
+    padding: "24px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+    textAlign: "center" as const,
+  },
+
+  modalTitle: {
+    margin: 0,
+    fontSize: "20px",
+    color: "white",
+    marginBottom: "10px",
+  },
+
+  modalText: {
+    color: "#94a3b8",
+    fontSize: "14px",
+    lineHeight: "1.5",
+    marginBottom: "22px",
+  },
+
+  modalActions: {
+    display: "flex",
+    gap: "10px",
+  },
+
+  cancelBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "transparent",
+    color: "#cbd5e1",
+    cursor: "pointer",
+  },
+
+  logoutBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#ef4444",
+    color: "white",
+    fontWeight: "600",
     cursor: "pointer",
   },
 };

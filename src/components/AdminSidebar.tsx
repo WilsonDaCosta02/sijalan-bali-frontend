@@ -185,8 +185,8 @@ const styles = {
   },
 
   logoutModal: {
-    width: "90%",
-    maxWidth: "340px",
+    width: "82%",
+    maxWidth: "290px",
     background: "#1E293B",
     borderRadius: "16px",
     padding: "24px",
