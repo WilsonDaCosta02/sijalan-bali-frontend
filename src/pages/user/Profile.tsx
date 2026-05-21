@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import userIcon from "../../assets/user-auth-icon.png";
 import { Mail, Lock } from "lucide-react";
 import { authFetch } from "../../utils/authFetch";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [name, setName] = useState(localStorage.getItem("username") || "");
@@ -18,10 +19,12 @@ const Profile = () => {
   const [hoverSave, setHoverSave] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const navigate = useNavigate();
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
   } | null>(null);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const s = styles(isMobile);
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -44,6 +47,35 @@ const Profile = () => {
   }, []);
 
   useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await authFetch("/api/auth/me");
+
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("isLogin");
+            localStorage.removeItem("user");
+            localStorage.removeItem("username");
+            localStorage.removeItem("userId");
+
+            setShowSessionExpired(true);
+
+            setTimeout(() => {
+              navigate("/login", {
+                replace: true,
+              });
+            }, 2000);
+
+            return;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    // fetch profile sekali
     const fetchProfile = async () => {
       try {
         const response = await authFetch("/api/auth/me");
@@ -60,7 +92,14 @@ const Profile = () => {
     };
 
     fetchProfile();
-  }, []);
+
+    // realtime check token
+    const interval = setInterval(() => {
+      checkSession();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   const handleUpdateProfile = async () => {
     try {
@@ -267,6 +306,19 @@ const Profile = () => {
           {toast.message}
         </div>
       )}
+      {showSessionExpired && (
+        <div style={s.modalOverlay}>
+          <div style={s.sessionModal}>
+            <div style={s.sessionIcon}>⚠</div>
+
+            <h3 style={s.sessionTitle}>Sesi Login Berakhir</h3>
+
+            <p style={s.sessionText}>
+              Silakan login kembali untuk melanjutkan akses akun Anda.
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -403,6 +455,74 @@ const styles = (isMobile: boolean): { [key: string]: React.CSSProperties } => ({
     display: "flex",
     justifyContent: "center",
     padding: isMobile ? "0px" : "0px 20px",
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.8)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 99999,
+  },
+
+  sessionModal: {
+    width: "82%",
+    maxWidth: "300px",
+
+    background: "#1E293B",
+
+    borderRadius: "22px",
+
+    padding: "28px 24px",
+
+    textAlign: "center",
+
+    border: "1px solid rgba(255,255,255,0.08)",
+
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+  },
+
+  sessionIcon: {
+    width: "60px",
+    height: "60px",
+
+    borderRadius: "50%",
+
+    background: "rgba(234,179,8,0.2)",
+
+    color: "#facc15",
+
+    display: "flex",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    fontSize: "30px",
+
+    fontWeight: "bold",
+
+    margin: "0 auto 16px",
+  },
+
+  sessionTitle: {
+    color: "white",
+
+    marginBottom: "8px",
+
+    fontSize: "20px",
+  },
+
+  sessionText: {
+    color: "#94a3b8",
+
+    fontSize: "14px",
+
+    lineHeight: "1.5",
   },
 });
 

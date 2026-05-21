@@ -35,6 +35,11 @@ const Navbar = ({ setOpenSidebar }: NavbarProps) => {
   }, []);
 
   useEffect(() => {
+    const userMode = localStorage.getItem("userMode");
+
+    if (userMode === "guest") {
+      return;
+    }
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");

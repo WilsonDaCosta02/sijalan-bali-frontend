@@ -28,6 +28,7 @@ const CreateReport = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
   const suggestionRef = useRef<HTMLDivElement | null>(null);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     const handleResize = () => {
@@ -36,6 +37,51 @@ const CreateReport = () => {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const userMode = localStorage.getItem("userMode");
+
+    // 🔥 guest jangan dicek token
+    if (userMode === "guest") {
+      return;
+    }
+
+    const checkSession = async () => {
+      try {
+        const response = await authFetch("/api/auth/me");
+
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("isLogin");
+            localStorage.removeItem("user");
+            localStorage.removeItem("username");
+            localStorage.removeItem("userId");
+
+            setShowSessionExpired(true);
+
+            setTimeout(() => {
+              navigate("/login", {
+                replace: true,
+              });
+            }, 2000);
+          }
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    // 🔥 cek pertama kali buka halaman
+    checkSession();
+
+    // 🔥 realtime cek session
+    const interval = setInterval(() => {
+      checkSession();
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -275,6 +321,30 @@ const CreateReport = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        // 🔥 guest jangan kena popup token expired
+        const userMode = localStorage.getItem("userMode");
+
+        if (
+          userMode !== "guest" &&
+          (response.status === 401 || response.status === 403)
+        ) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("isLogin");
+          localStorage.removeItem("user");
+          localStorage.removeItem("username");
+          localStorage.removeItem("userId");
+
+          setShowSessionExpired(true);
+
+          setTimeout(() => {
+            navigate("/login", {
+              replace: true,
+            });
+          }, 2000);
+
+          return;
+        }
+
         alert(data.message || "Gagal membuat laporan");
         return;
       }
@@ -706,6 +776,19 @@ const CreateReport = () => {
           </div>
         </div>
       )}
+      {showSessionExpired && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.sessionModal}>
+            <div style={styles.sessionIcon}>⚠</div>
+
+            <h3 style={styles.sessionTitle}>Sesi Login Berakhir</h3>
+
+            <p style={styles.sessionText}>
+              Silakan login kembali untuk melanjutkan akses akun Anda.
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -1058,6 +1141,61 @@ const styles = {
 
   successIcon: {
     fontSize: "36px",
+  },
+  sessionModal: {
+    width: "82%",
+    maxWidth: "300px",
+
+    background: "#1E293B",
+
+    borderRadius: "22px",
+
+    padding: "28px 24px",
+
+    textAlign: "center" as const,
+
+    border: "1px solid rgba(255,255,255,0.08)",
+
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+  },
+
+  sessionIcon: {
+    width: "60px",
+    height: "60px",
+
+    borderRadius: "50%",
+
+    background: "rgba(234,179,8,0.2)",
+
+    color: "#facc15",
+
+    display: "flex",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    fontSize: "30px",
+
+    fontWeight: "bold",
+
+    margin: "0 auto 16px",
+  },
+
+  sessionTitle: {
+    color: "white",
+
+    marginBottom: "8px",
+
+    fontSize: "20px",
+  },
+
+  sessionText: {
+    color: "#94a3b8",
+
+    fontSize: "14px",
+
+    lineHeight: "1.5",
   },
 };
 
