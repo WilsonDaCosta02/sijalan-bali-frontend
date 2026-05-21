@@ -154,6 +154,9 @@ const MapView = ({ lat, lng, onChangeLocation, markers }: MapViewProps) => {
       }}
     >
       <MapContainer
+        center={position}
+        zoom={13}
+        scrollWheelZoom={true}
         style={{
           height: "100%",
           width: "100%",

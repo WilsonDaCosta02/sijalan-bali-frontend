@@ -48,8 +48,7 @@ const AdminDashboard = () => {
     message: string;
     type: "success" | "delete";
   } | null>(null);
-const [showSessionExpired, setShowSessionExpired] =
-  useState(false);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const total = reports.length;
   const belum = reports.filter((r) => r.status === "Terkirim").length;
   const proses = reports.filter((r) => r.status === "Diproses").length;
@@ -106,36 +105,27 @@ const [showSessionExpired, setShowSessionExpired] =
         const data = await response.json();
 
         if (!response.ok) {
-  // 🔥 token expired / unauthorized
-  if (
-    response.status === 401 ||
-    response.status === 403
-  ) {
-    localStorage.removeItem(
-      "admin_token",
-    );
+          // 🔥 token expired / unauthorized
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("admin_token");
 
-    localStorage.removeItem(
-      "admin_username",
-    );
+            localStorage.removeItem("admin_username");
 
-    localStorage.removeItem("user");
+            localStorage.removeItem("user");
 
-    localStorage.removeItem(
-      "userMode",
-    );
+            localStorage.removeItem("userMode");
 
-    setShowSessionExpired(true);
+            setShowSessionExpired(true);
 
-    setTimeout(() => {
-      navigate("/admin-login", {
-        replace: true,
-      });
-    }, 2000);
-  }
+            setTimeout(() => {
+              navigate("/admin-login", {
+                replace: true,
+              });
+            }, 2000);
+          }
 
-  return;
-}
+          return;
+        }
 
         setReports(data);
       } catch (err) {
@@ -663,9 +653,9 @@ const [showSessionExpired, setShowSessionExpired] =
                         <div style={styles.infoRow}>
                           <span style={styles.label}>Tanggal:</span>
                           <span style={styles.value}>
-                            {new Date(
-                              selectedReport.created_at,
-                            ).toLocaleDateString("id-ID") || "-"}
+                            {new Date(selectedReport.created_at).toLocaleString(
+                              "id-ID",
+                            ) || "-"}
                           </span>
                         </div>
 
@@ -924,24 +914,18 @@ const [showSessionExpired, setShowSessionExpired] =
         )}
       </div>
       {showSessionExpired && (
-  <div style={styles.modalOverlay}>
-    <div style={styles.sessionModal}>
-      <div style={styles.sessionIcon}>
-        ⚠
-      </div>
+        <div style={styles.modalOverlay}>
+          <div style={styles.sessionModal}>
+            <div style={styles.sessionIcon}>⚠</div>
 
-      <h3 style={styles.sessionTitle}>
-        Sesi Login Berakhir
-      </h3>
+            <h3 style={styles.sessionTitle}>Sesi Login Berakhir</h3>
 
-      <p style={styles.sessionText}>
-        Silakan login kembali
-        untuk melanjutkan akses
-        dashboard admin.
-      </p>
-    </div>
-  </div>
-)}
+            <p style={styles.sessionText}>
+              Silakan login kembali untuk melanjutkan akses dashboard admin.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1512,63 +1496,60 @@ const styles = {
     pointerEvents: "none" as const,
   },
   sessionModal: {
-  width: "82%",
-  maxWidth: "300px",
+    width: "82%",
+    maxWidth: "300px",
 
-  background: "#1E293B",
+    background: "#1E293B",
 
-  borderRadius: "22px",
+    borderRadius: "22px",
 
-  padding: "28px 24px",
+    padding: "28px 24px",
 
-  textAlign: "center" as const,
+    textAlign: "center" as const,
 
-  border:
-    "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.08)",
 
-  boxShadow:
-    "0 10px 40px rgba(0,0,0,0.4)",
-},
+    boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+  },
 
-sessionIcon: {
-  width: "60px",
-  height: "60px",
+  sessionIcon: {
+    width: "60px",
+    height: "60px",
 
-  borderRadius: "50%",
+    borderRadius: "50%",
 
-  background:
-    "rgba(234,179,8,0.2)",
+    background: "rgba(234,179,8,0.2)",
 
-  color: "#facc15",
+    color: "#facc15",
 
-  display: "flex",
+    display: "flex",
 
-  justifyContent: "center",
+    justifyContent: "center",
 
-  alignItems: "center",
+    alignItems: "center",
 
-  fontSize: "30px",
+    fontSize: "30px",
 
-  fontWeight: "bold",
+    fontWeight: "bold",
 
-  margin: "0 auto 16px",
-},
+    margin: "0 auto 16px",
+  },
 
-sessionTitle: {
-  color: "white",
+  sessionTitle: {
+    color: "white",
 
-  marginBottom: "8px",
+    marginBottom: "8px",
 
-  fontSize: "20px",
-},
+    fontSize: "20px",
+  },
 
-sessionText: {
-  color: "#94a3b8",
+  sessionText: {
+    color: "#94a3b8",
 
-  fontSize: "14px",
+    fontSize: "14px",
 
-  lineHeight: "1.5",
-},
+    lineHeight: "1.5",
+  },
 };
 
 export default AdminDashboard;

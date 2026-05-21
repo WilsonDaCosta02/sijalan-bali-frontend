@@ -16,6 +16,7 @@ type Report = {
   road_name: string;
   landmark: string;
   damage_level: string;
+  description: string;
   status: string;
   latitude: string;
   longitude: string;
@@ -38,6 +39,7 @@ const Dashboard = () => {
   const selesai = reports.filter((r) => r.status === "Selesai").length;
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [showLoginWarning, setShowLoginWarning] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
   const navigate = useNavigate();
@@ -236,6 +238,7 @@ const Dashboard = () => {
                 .slice(-3)
                 .map((item, i) => (
                   <div
+                    onClick={() => setSelectedReport(item)}
                     key={i}
                     style={styles.row(isMobile)}
                     onMouseEnter={(e) =>
@@ -265,15 +268,6 @@ const Dashboard = () => {
                           <img
                             src={`${API_URL}/${item.image_url[0]}`}
                             style={styles.thumbnail}
-                            onClick={() => {
-                              setPreviewImages(
-                                item.image_url.map(
-                                  (img) => `${API_URL}/${img}`,
-                                ),
-                              );
-
-                              setCurrentIndex(0);
-                            }}
                           />
 
                           {item.image_url.length > 1 && (
@@ -321,7 +315,7 @@ const Dashboard = () => {
         </div>
       </div>
       {previewImages.length > 0 && (
-        <div style={styles.modalOverlay} onClick={() => setPreviewImages([])}>
+        <div style={styles.previewOverlay} onClick={() => setPreviewImages([])}>
           <div
             style={styles.previewWrapper}
             onClick={(e) => e.stopPropagation()}
@@ -352,6 +346,167 @@ const Dashboard = () => {
             >
               ✕
             </button>
+          </div>
+        </div>
+      )}
+      {selectedReport && (
+        <div
+          style={styles.modalOverlay}
+          onClick={() => setSelectedReport(null)}
+        >
+          <div style={styles.detailModal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.detailHeader}>
+              <h2
+                style={{
+                  margin: 0,
+                  color: "white",
+                  fontSize: isMobile ? "20px" : "24px",
+                }}
+              >
+                Detail Laporan
+              </h2>
+
+              <button
+                style={styles.closeDetailBtn}
+                onClick={() => setSelectedReport(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={styles.detailContent}>
+              <div style={styles.detailItem}>
+                <b>Tanggal</b>
+                <p>
+                  {new Date(selectedReport.created_at).toLocaleString("id-ID")}
+                </p>
+              </div>
+
+              <div style={styles.detailItem}>
+                <b>Nama Jalan</b>
+                <p>{selectedReport.road_name}</p>
+              </div>
+
+              <div style={styles.detailItem}>
+                <b>Lokasi</b>
+                <p>{selectedReport.landmark || "-"}</p>
+              </div>
+
+              <div style={styles.detailItem}>
+                <b>Tingkat Kerusakan</b>
+                <p>{selectedReport.damage_level}</p>
+              </div>
+
+              <div style={styles.detailItem}>
+                <b>Status</b>
+
+                <span
+                  style={{
+                    ...styles.badge,
+                    width: "fit-content",
+                    backgroundColor:
+                      selectedReport.status === "Selesai"
+                        ? "rgba(34,197,94,0.2)"
+                        : selectedReport.status === "Diproses"
+                          ? "rgba(234,179,8,0.2)"
+                          : "rgba(59,130,246,0.2)",
+                    color:
+                      selectedReport.status === "Selesai"
+                        ? "#22c55e"
+                        : selectedReport.status === "Diproses"
+                          ? "#facc15"
+                          : "#3b82f6",
+                  }}
+                >
+                  {selectedReport.status}
+                </span>
+              </div>
+
+              <div style={styles.detailItem}>
+                <b>Deskripsi Kerusakan</b>
+
+                <p>{selectedReport.description || "-"}</p>
+              </div>
+
+              <div style={styles.detailItem}>
+                <b>Koordinat</b>
+                <p>
+                  {selectedReport.latitude}, {selectedReport.longitude}
+                </p>
+              </div>
+              <div style={styles.detailItem}>
+                <b>Lokasi Maps</b>
+
+                <div style={styles.detailMap}>
+                  <MapView
+                    markers={[
+                      {
+                        id: selectedReport.id,
+                        road_name: selectedReport.road_name,
+                        landmark: selectedReport.landmark,
+                        damage_level: selectedReport.damage_level,
+                        status: selectedReport.status,
+                        latitude: selectedReport.latitude,
+                        longitude: selectedReport.longitude,
+                        image_url: selectedReport.image_url,
+                        created_at: selectedReport.created_at,
+
+                        // 🔥 penting
+                        lat: Number(selectedReport.latitude),
+                        lng: Number(selectedReport.longitude),
+                      },
+                    ]}
+                  />
+                </div>
+              </div>
+              <div style={styles.detailPhotos}>
+                <b>Foto Laporan</b>
+
+                <div style={styles.detailImageGrid}>
+                  {selectedReport.image_url.map((img, index) => (
+                    <div
+                      key={index}
+                      style={styles.detailImageWrapper}
+                      onMouseEnter={(e) => {
+                        const overlay = e.currentTarget.querySelector(
+                          ".detail-overlay",
+                        ) as HTMLDivElement;
+
+                        if (overlay) overlay.style.opacity = "1";
+                      }}
+                      onMouseLeave={(e) => {
+                        const overlay = e.currentTarget.querySelector(
+                          ".detail-overlay",
+                        ) as HTMLDivElement;
+
+                        if (overlay) overlay.style.opacity = "0";
+                      }}
+                      onClick={() => {
+                        setPreviewImages(
+                          selectedReport.image_url.map(
+                            (img: string) => `${API_URL}/${img}`,
+                          ),
+                        );
+
+                        setCurrentIndex(index);
+                      }}
+                    >
+                      <img
+                        src={`${API_URL}/${img}`}
+                        style={styles.detailImage}
+                      />
+
+                      <div
+                        className="detail-overlay"
+                        style={styles.detailImageOverlay}
+                      >
+                        🔍
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -518,11 +673,13 @@ const styles = {
   row: (isMobile: boolean): React.CSSProperties => ({
     display: "grid",
     gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr 1fr 1fr 1fr",
-    padding: "14px 0",
+    padding: "18px 20px",
     borderBottom: "1px solid #334155",
     alignItems: "start",
     gap: "8px",
     lineHeight: "1.5",
+    color: "#e2e8f0",
+    cursor: "pointer",
   }),
   badge: {
     padding: "4px 10px",
@@ -629,6 +786,8 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     zIndex: 9999,
+    padding: "16px",
+    boxSizing: "border-box" as const,
   },
 
   navLeft: {
@@ -712,6 +871,163 @@ const styles = {
     fontSize: "14px",
 
     lineHeight: "1.5",
+  },
+  detailHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+
+    marginBottom: "16px",
+  },
+  detailModal: {
+    width: window.innerWidth < 768 ? "calc(100vw - 32px)" : "88%",
+
+    maxWidth: "540px",
+
+    background: "#1E293B",
+
+    borderRadius: "18px",
+
+    padding: window.innerWidth < 768 ? "14px" : "22px",
+
+    border: "1px solid rgba(255,255,255,0.08)",
+
+    maxHeight: "82vh",
+
+    overflowY: "auto" as const,
+
+    boxShadow: "0 10px 40px rgba(0,0,0,0.45)",
+  },
+
+  closeDetailBtn: {
+    background: "rgba(255,255,255,0.06)",
+
+    border: "none",
+
+    color: "white",
+
+    width: "34px",
+
+    height: "34px",
+
+    borderRadius: "10px",
+
+    fontSize: "16px",
+
+    cursor: "pointer",
+  },
+
+  detailContent: {
+    display: "flex",
+    flexDirection: "column" as const,
+
+    gap: "14px",
+
+    color: "#e2e8f0",
+  },
+
+  detailItem: {
+    display: "flex",
+    flexDirection: "column" as const,
+
+    gap: "4px",
+
+    paddingBottom: "12px",
+
+    borderTop: "1px solid rgba(148,163,184,0.08)",
+  },
+
+  detailPhotos: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "10px",
+  },
+
+  detailImageGrid: {
+    display: "grid",
+
+    gridTemplateColumns:
+      window.innerWidth < 768 ? "repeat(2,1fr)" : "repeat(3,1fr)",
+
+    gap: "10px",
+  },
+
+  detailImage: {
+    width: "100%",
+
+    height: window.innerWidth < 768 ? "95px" : "120px",
+
+    objectFit: "cover" as const,
+
+    borderRadius: "12px",
+
+    cursor: "pointer",
+
+    transition: "0.2s",
+  },
+  previewOverlay: {
+    position: "fixed" as const,
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.92)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10000,
+  },
+  detailMap: {
+    width: "100%",
+
+    height: window.innerWidth < 768 ? "180px" : "250px",
+
+    borderRadius: "14px",
+
+    overflow: "hidden",
+
+    marginTop: "6px",
+
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  detailImageWrapper: {
+    position: "relative" as const,
+
+    width: "100%",
+
+    height: window.innerWidth < 768 ? "95px" : "120px",
+
+    borderRadius: "12px",
+
+    overflow: "hidden",
+
+    cursor: "pointer",
+  },
+
+  detailImageOverlay: {
+    position: "absolute" as const,
+
+    top: 0,
+    left: 0,
+
+    width: "100%",
+    height: "100%",
+
+    backgroundColor: "rgba(0,0,0,0.45)",
+
+    display: "flex",
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    opacity: 0,
+
+    transition: "0.25s",
+
+    fontSize: "24px",
+
+    color: "white",
   },
 };
 
