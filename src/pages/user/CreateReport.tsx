@@ -29,6 +29,14 @@ const CreateReport = () => {
   const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
   const suggestionRef = useRef<HTMLDivElement | null>(null);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const showError = (message: string) => {
+    setErrorMessage(message);
+
+    setTimeout(() => {
+      setErrorMessage("");
+    }, 2500);
+  };
   const navigate = useNavigate();
   useEffect(() => {
     const handleResize = () => {
@@ -103,7 +111,7 @@ const CreateReport = () => {
 
   const getLocation = () => {
     if (!navigator.geolocation) {
-      alert("Browser tidak mendukung geolocation");
+      showError("Browser tidak mendukung geolocation");
       return;
     }
 
@@ -127,11 +135,11 @@ const CreateReport = () => {
 
         // 🔥 versi advance (buat skripsi)
         if (err.code === 1) {
-          alert("Izin lokasi ditolak");
+          showError("Izin lokasi ditolak");
         } else if (err.code === 2) {
-          alert("Lokasi tidak tersedia");
+          showError("Lokasi tidak tersedia");
         } else {
-          alert("Terjadi kesalahan");
+          showError("Terjadi kesalahan");
         }
       },
     );
@@ -204,12 +212,12 @@ const CreateReport = () => {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("Ukuran file maksimal 10MB");
+      showError("Ukuran file maksimal 10MB");
       return;
     }
 
     if (images.length >= 3) {
-      alert("Maksimal 3 foto");
+      showError("Maksimal 3 foto");
       return;
     }
 
@@ -273,7 +281,7 @@ const CreateReport = () => {
 
   const handleSubmit = async () => {
     if (images.length === 0) {
-      alert("Foto belum diupload");
+      showError("Foto belum diupload");
       return;
     }
 
@@ -285,7 +293,7 @@ const CreateReport = () => {
       const coords = await getCoordinatesFromAddress(address);
 
       if (!coords) {
-        alert("Alamat tidak ditemukan");
+        showError("Alamat tidak ditemukan");
         return;
       }
 
@@ -294,7 +302,7 @@ const CreateReport = () => {
     }
 
     if (!finalLat || !finalLng) {
-      alert("Lokasi belum valid");
+      showError("Lokasi belum valid");
       return;
     }
 
@@ -345,12 +353,12 @@ const CreateReport = () => {
           return;
         }
 
-        alert(data.message || "Gagal membuat laporan");
+        showError(data.message || "Gagal membuat laporan");
         return;
       }
     } catch (err) {
       console.log(err);
-      alert("Terjadi kesalahan server");
+      showError("Terjadi kesalahan server");
     }
 
     setShowSuccess(true);
@@ -390,7 +398,13 @@ const CreateReport = () => {
         onChange={handleImage}
       />
       <Navbar setOpenSidebar={setOpenSidebar} />
+      {errorMessage && (
+        <div style={styles.errorToast}>
+          <span style={styles.errorIcon}>!</span>
 
+          {errorMessage}
+        </div>
+      )}
       <div style={styles.container}>
         <Sidebar
           open={isMobile ? openSidebar : true}
@@ -1196,6 +1210,49 @@ const styles = {
     fontSize: "14px",
 
     lineHeight: "1.5",
+  },
+  errorToast: {
+    position: "fixed" as const,
+
+    top: "90px",
+    left: "50%",
+
+    transform: "translateX(-50%)",
+
+    background: "#7f1d1d",
+
+    color: "white",
+
+    padding: "12px 18px",
+
+    borderRadius: "14px",
+
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+
+    fontSize: "14px",
+
+    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+
+    zIndex: 999999,
+
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+
+  errorIcon: {
+    width: "22px",
+    height: "22px",
+
+    borderRadius: "50%",
+
+    background: "rgba(255,255,255,0.15)",
+
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+
+    fontWeight: "bold",
   },
 };
 
