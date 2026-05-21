@@ -57,6 +57,13 @@ const ReportHistory = () => {
     );
 
   useEffect(() => {
+    const userMode = localStorage.getItem("userMode");
+
+    // 🔥 kalau guest jangan fetch laporan
+    if (userMode === "guest") {
+      return;
+    }
+
     const fetchMyReports = async () => {
       try {
         const response = await authFetch("/api/reports/my");

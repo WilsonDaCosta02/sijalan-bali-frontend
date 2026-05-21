@@ -59,6 +59,13 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const userMode = localStorage.getItem("userMode");
+
+    // 🔥 kalau guest jangan fetch
+    if (userMode === "guest") {
+      return;
+    }
+
     const fetchReports = async () => {
       try {
         const response = await authFetch("/api/reports/my");

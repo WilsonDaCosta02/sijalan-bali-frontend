@@ -27,6 +27,20 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
   }, []);
 
   const handleLogout = () => {
+    const userMode = localStorage.getItem("userMode");
+
+    // 🔥 kalau guest langsung keluar
+    if (userMode === "guest") {
+      localStorage.removeItem("userMode");
+
+      navigate("/", {
+        replace: true,
+      });
+
+      return;
+    }
+
+    // 🔥 kalau login baru tampil popup
     setShowLogoutConfirm(true);
   };
   return (

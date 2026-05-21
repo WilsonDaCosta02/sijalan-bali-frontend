@@ -29,7 +29,12 @@ const Hero = () => {
               localStorage.removeItem("isLogin");
               localStorage.removeItem("userMode");
               localStorage.removeItem("username");
-              localStorage.removeItem("registeredUser"); // 🔥 INI WAJIB
+              localStorage.removeItem("registeredUser");
+
+              // 🔥 TAMBAHAN PENTING
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              localStorage.removeItem("userId");
 
               localStorage.setItem("userMode", "guest");
 
