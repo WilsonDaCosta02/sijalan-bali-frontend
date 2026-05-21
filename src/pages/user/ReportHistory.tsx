@@ -1,6 +1,7 @@
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
 import { API_URL } from "../../config/api";
 import { authFetch } from "../../utils/authFetch";
 import { useNavigate } from "react-router-dom";
@@ -30,12 +31,30 @@ const ReportHistory = () => {
 
     return saved ? JSON.parse(saved) : [];
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Semua");
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  const filteredReports = reports
+    .filter((r) => {
+      const matchStatus =
+        filterStatus === "Semua" ? true : r.status === filterStatus;
+
+      const matchSearch = (r.road_name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      return matchStatus && matchSearch;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
 
   useEffect(() => {
     const fetchMyReports = async () => {
@@ -127,6 +146,39 @@ const ReportHistory = () => {
           <div style={styles.card}>
             <div style={styles.cardHeader}>⏱️ Seluruh Riwayat Laporan Anda</div>
 
+            {/* 🔥 tampilkan search/filter hanya kalau ada data */}
+            {reports.length > 0 && (
+              <div style={styles.controlWrapper}>
+                {/* SEARCH */}
+                <div style={styles.searchWrapper}>
+                  <Search size={16} style={styles.searchIcon} />
+
+                  <input
+                    type="text"
+                    placeholder="Cari nama jalan..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={styles.searchInput}
+                  />
+                </div>
+
+                {/* FILTER */}
+                <div style={styles.filterWrapper}>
+                  <span style={styles.filterLabel}>Filter Status</span>
+
+                  <select
+                    style={styles.filterSelect}
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="Semua">Semua Laporan</option>
+                    <option value="Terkirim">Terkirim</option>
+                    <option value="Diproses">Diproses</option>
+                    <option value="Selesai">Selesai</option>
+                  </select>
+                </div>
+              </div>
+            )}
             {/* TABLE HEADER */}
             <div style={styles.tableHeader(isMobile)}>
               <span>Tanggal</span>
@@ -142,89 +194,89 @@ const ReportHistory = () => {
             </div>
 
             {/* DATA */}
-            {reports.length === 0 ? (
-              <div style={styles.empty}>Belum ada laporan 😢</div>
+            {filteredReports.length === 0 ? (
+              <div style={styles.empty}>
+                {filterStatus === "Diproses"
+                  ? "Belum ada laporan yang diproses 😢"
+                  : filterStatus === "Selesai"
+                    ? "Belum ada laporan yang selesai 😢"
+                    : "Belum ada laporan 😢"}
+              </div>
             ) : (
-              [...reports]
-                .sort(
-                  (a, b) =>
-                    new Date(a.created_at).getTime() -
-                    new Date(b.created_at).getTime(),
-                )
-                .map((item, i) => (
-                  <div
-                    key={i}
-                    style={styles.row(isMobile)}
-                    onClick={() => setSelectedReport(item)}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        "rgba(148,163,184,0.05)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "transparent")
-                    }
-                  >
-                    <span>
-                      {isMobile && <b>Tanggal: </b>}
-                      {new Date(item.created_at).toLocaleDateString("id-ID")}
-                    </span>
+              filteredReports.map((item, i) => (
+                <div
+                  key={i}
+                  style={styles.row(isMobile)}
+                  onClick={() => setSelectedReport(item)}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor =
+                      "rgba(148,163,184,0.05)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  <span>
+                    {isMobile && <b>Tanggal: </b>}
+                    {new Date(item.created_at).toLocaleDateString("id-ID")}
+                  </span>
 
-                    <span style={styles.location}>
-                      {isMobile && <b>Lokasi: </b>}
-                      {item.road_name}
-                      {item.landmark && ` (${item.landmark})`}
-                    </span>
+                  <span style={styles.location}>
+                    {isMobile && <b>Lokasi: </b>}
+                    {item.road_name}
+                    {item.landmark && ` (${item.landmark})`}
+                  </span>
 
-                    {/* 🔥 FOTO */}
-                    <span style={styles.photoCell(isMobile)}>
-                      {isMobile && <b>Foto: </b>}
+                  {/* 🔥 FOTO */}
+                  <span style={styles.photoCell(isMobile)}>
+                    {isMobile && <b>Foto: </b>}
 
-                      {item.image_url && item.image_url.length > 0 ? (
-                        <div style={styles.imageWrapper}>
-                          <img
-                            src={`${API_URL}/${item.image_url[0]}`}
-                            style={styles.thumbnail}
-                          />
+                    {item.image_url && item.image_url.length > 0 ? (
+                      <div style={styles.imageWrapper}>
+                        <img
+                          src={`${API_URL}/${item.image_url[0]}`}
+                          style={styles.thumbnail}
+                        />
 
-                          {item.image_url.length > 1 && (
-                            <small style={styles.morePhoto}>
-                              +{item.image_url.length - 1}
-                            </small>
-                          )}
-                        </div>
-                      ) : (
-                        <span style={{ color: "#64748b" }}>-</span>
-                      )}
-                    </span>
-                    <span style={{ textAlign: isMobile ? "left" : "right" }}>
-                      {isMobile && <b>Kerusakan: </b>}
-                      {item.damage_level}
-                    </span>
+                        {item.image_url.length > 1 && (
+                          <small style={styles.morePhoto}>
+                            +{item.image_url.length - 1}
+                          </small>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ color: "#64748b" }}>-</span>
+                    )}
+                  </span>
+                  <span style={{ textAlign: isMobile ? "left" : "right" }}>
+                    {isMobile && <b>Kerusakan: </b>}
+                    {item.damage_level}
+                  </span>
 
-                    <span style={{ textAlign: isMobile ? "left" : "right" }}>
-                      {isMobile && <b>Status: </b>}
-                      <span
-                        style={{
-                          ...styles.badge,
-                          backgroundColor:
-                            item.status === "Selesai"
-                              ? "rgba(34,197,94,0.2)"
-                              : item.status === "Diproses"
-                                ? "rgba(234,179,8,0.2)"
-                                : "rgba(59,130,246,0.2)",
-                          color:
-                            item.status === "Selesai"
-                              ? "#22c55e"
-                              : item.status === "Diproses"
-                                ? "#facc15"
-                                : "#3b82f6",
-                        }}
-                      >
-                        {item.status}
-                      </span>
+                  <span style={{ textAlign: isMobile ? "left" : "right" }}>
+                    {isMobile && <b>Status: </b>}
+                    <span
+                      style={{
+                        ...styles.badge,
+                        backgroundColor:
+                          item.status === "Selesai"
+                            ? "rgba(34,197,94,0.2)"
+                            : item.status === "Diproses"
+                              ? "rgba(234,179,8,0.2)"
+                              : "rgba(59,130,246,0.2)",
+                        color:
+                          item.status === "Selesai"
+                            ? "#22c55e"
+                            : item.status === "Diproses"
+                              ? "#facc15"
+                              : "#3b82f6",
+                      }}
+                    >
+                      {item.status}
                     </span>
-                  </div>
-                ))
+                  </span>
+                </div>
+              ))
             )}
           </div>
         </div>
@@ -841,6 +893,73 @@ const styles = {
     fontSize: "24px",
 
     color: "white",
+  },
+  controlWrapper: {
+    display: "flex",
+
+    flexDirection:
+      window.innerWidth < 768 ? ("column" as const) : ("row" as const),
+
+    justifyContent: "space-between",
+
+    alignItems:
+      window.innerWidth < 768 ? ("stretch" as const) : ("center" as const),
+
+    gap: "12px",
+
+    padding: "18px 20px",
+
+    borderBottom: "1px solid rgba(148,163,184,0.08)",
+  },
+
+  searchWrapper: {
+    position: "relative" as const,
+    display: "flex",
+    alignItems: "center",
+    width: window.innerWidth < 768 ? "100%" : "auto",
+    flex: 1,
+  },
+
+  searchIcon: {
+    position: "absolute" as const,
+    left: "12px",
+    color: "#64748b",
+    pointerEvents: "none" as const,
+  },
+
+  searchInput: {
+    padding: "8px 14px 8px 38px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "#0F172A",
+    color: "white",
+    outline: "none",
+    fontSize: "13px",
+    width: "100%",
+    maxWidth: window.innerWidth < 768 ? "100%" : "400px",
+    boxSizing: "border-box" as const,
+  },
+
+  filterWrapper: {
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems:
+      window.innerWidth < 768 ? ("flex-start" as const) : ("flex-end" as const),
+  },
+
+  filterLabel: {
+    fontSize: "14px",
+    color: "#94a3b8",
+    marginBottom: "4px",
+  },
+
+  filterSelect: {
+    padding: "8px 12px",
+    borderRadius: "10px",
+    background: "#0F172A",
+    color: "white",
+    border: "1px solid rgba(255,255,255,0.1)",
+    fontSize: "13px",
   },
 };
 

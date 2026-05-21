@@ -375,7 +375,7 @@ const AdminDashboard = () => {
                             width: isMobile ? "10%" : "8%",
                           }}
                         >
-                          ID
+                          No
                         </th>
 
                         <th
@@ -1440,12 +1440,12 @@ const styles = {
     background: "rgba(255,255,255,0.03)", // subtle layer
   },
   filterSelect: {
-    padding: "1px 1px",
-    borderRadius: "8px",
+    padding: "8px 12px",
+    borderRadius: "10px",
     background: "#0F172A",
     color: "white",
     border: "1px solid rgba(255,255,255,0.1)",
-    fontSize: "11px",
+    fontSize: "13px",
   },
   filterWrapper: {
     display: "flex",

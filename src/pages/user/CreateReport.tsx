@@ -3,6 +3,7 @@ import Sidebar from "../../components/Sidebar";
 import MapView from "../../components/MapView";
 import { useState, useEffect, useRef } from "react";
 import { authFetch } from "../../utils/authFetch";
+import { useNavigate } from "react-router-dom";
 
 type Suggestion = {
   display_name: string;
@@ -27,7 +28,7 @@ const CreateReport = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<number | null>(null);
   const suggestionRef = useRef<HTMLDivElement | null>(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -285,8 +286,8 @@ const CreateReport = () => {
     setShowSuccess(true);
 
     setTimeout(() => {
-      setShowSuccess(false);
-    }, 2000); // auto hilang 2 detik
+      navigate("/history");
+    }, 1800); // auto hilang 2 detik
 
     // reset
     setImages([]);
