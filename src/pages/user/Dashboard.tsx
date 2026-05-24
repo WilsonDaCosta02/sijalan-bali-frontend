@@ -59,6 +59,31 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const handleBackButton = () => {
+      // 🔥 hapus session
+      localStorage.removeItem("token");
+      localStorage.removeItem("isLogin");
+      localStorage.removeItem("user");
+      localStorage.removeItem("username");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userMode");
+
+      navigate("/login", {
+        replace: true,
+      });
+    };
+
+    // 🔥 push history dummy
+    window.history.pushState(null, "", window.location.href);
+
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, [navigate]);
+
+  useEffect(() => {
     const userMode = localStorage.getItem("userMode");
 
     // 🔥 kalau guest jangan fetch

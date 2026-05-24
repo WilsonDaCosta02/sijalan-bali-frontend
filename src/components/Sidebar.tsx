@@ -214,8 +214,12 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
                 onClick={() => {
                   localStorage.removeItem("token");
                   localStorage.removeItem("username");
+                  localStorage.removeItem("isLogin");
+                  localStorage.removeItem("user");
+                  localStorage.removeItem("userId");
+                  localStorage.removeItem("userMode");
 
-                  navigate("/", {
+                  navigate("/login", {
                     replace: true,
                   });
                 }}

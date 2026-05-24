@@ -3,7 +3,7 @@ import "../../styles/auth.css";
 import userIcon from "../../assets/user-auth-icon.png";
 import Background from "../../components/Background";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { API_URL } from "../../config/api";
 
@@ -15,6 +15,22 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const handleBack = () => {
+      navigate("/", {
+        replace: true,
+      });
+    };
+
+    window.history.pushState(null, "", window.location.href);
+
+    window.addEventListener("popstate", handleBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, [navigate]);
 
   return (
     <>
