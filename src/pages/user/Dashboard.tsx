@@ -73,9 +73,6 @@ const Dashboard = () => {
       });
     };
 
-    // 🔥 push history dummy
-    window.history.pushState(null, "", window.location.href);
-
     window.addEventListener("popstate", handleBackButton);
 
     return () => {
