@@ -241,8 +241,14 @@ const Dashboard = () => {
               <span>Tanggal</span>
               <span>Lokasi</span>
               <span style={{ textAlign: "center" }}>Foto</span>
-              <span style={{ textAlign: "right" }}>Tingkat Kerusakan</span>
-              <span style={{ textAlign: "right", paddingRight: "15px" }}>
+              <span
+                style={{ textAlign: "right", transform: "translateX(-15px)" }}
+              >
+                Tingkat Kerusakan
+              </span>
+              <span
+                style={{ textAlign: "right", transform: "translateX(-35px)" }}
+              >
                 Status
               </span>
             </div>
@@ -702,9 +708,9 @@ const styles = {
   row: (isMobile: boolean): React.CSSProperties => ({
     display: "grid",
     gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr 1fr 1fr 1fr",
-    padding: "18px 20px",
+    padding: "18px 0px",
     borderBottom: "1px solid #334155",
-    alignItems: "start",
+    alignItems: "center",
     gap: "8px",
     lineHeight: "1.5",
     color: "#e2e8f0",

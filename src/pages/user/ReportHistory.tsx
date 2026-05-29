@@ -189,7 +189,7 @@ const ReportHistory = () => {
             {/* TABLE HEADER */}
             <div style={styles.tableHeader(isMobile)}>
               <span>Tanggal</span>
-              <span>Lokasi / Jalan</span>
+              <span>Lokasi</span>
               <span style={{ textAlign: "center", paddingRight: "13px" }}>
                 Foto
               </span>{" "}
@@ -579,7 +579,6 @@ const styles = {
   }),
 
   location: {
-    fontWeight: 500,
     lineHeight: "1.4",
     wordBreak: "break-word" as const,
   },
