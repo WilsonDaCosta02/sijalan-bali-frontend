@@ -212,6 +212,11 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
               <button
                 style={styles.logoutBtn}
                 onClick={() => {
+                  const userId = localStorage.getItem("userId");
+
+                  if (userId) {
+                    localStorage.removeItem(`myReports_${userId}`);
+                  }
                   localStorage.removeItem("token");
                   localStorage.removeItem("username");
                   localStorage.removeItem("isLogin");
