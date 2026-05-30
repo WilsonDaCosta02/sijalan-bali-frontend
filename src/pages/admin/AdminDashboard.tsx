@@ -1306,15 +1306,12 @@ const styles = {
   },
   thumbnailLarge: {
     width: "100%",
-    maxWidth: "100%",
-    height: "auto", // 🔥 penting
-    maxHeight: "260px",
+    height: "260px",
     objectFit: "cover" as const,
     borderRadius: "14px",
     cursor: "pointer",
     transition: "transform 0.3s ease",
   },
-
   morePhoto: {
     fontSize: "12px",
     color: "#94a3b8",
@@ -1377,6 +1374,7 @@ const styles = {
     justifyContent: "center", // 🔥 center horizontal
     alignItems: "center",
     cursor: "pointer",
+    width: "100%",
   },
 
   overlay: {
