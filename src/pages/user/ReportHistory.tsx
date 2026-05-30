@@ -651,7 +651,6 @@ const styles = {
     color: "white",
     width: "48px",
     height: "48px",
-    fontSize: "18px",
     borderRadius: "50%",
     cursor: "pointer",
   },
