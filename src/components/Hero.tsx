@@ -35,7 +35,11 @@ const Hero = () => {
               localStorage.removeItem("token");
               localStorage.removeItem("user");
               localStorage.removeItem("userId");
-
+              Object.keys(localStorage).forEach((key) => {
+                if (key.startsWith("myReports_")) {
+                  localStorage.removeItem(key);
+                }
+              });
               localStorage.setItem("userMode", "guest");
 
               navigate("/dashboard");

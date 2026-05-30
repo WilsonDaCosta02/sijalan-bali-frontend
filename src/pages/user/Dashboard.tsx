@@ -28,7 +28,17 @@ const Dashboard = () => {
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [reports, setReports] = useState<Report[]>(() => {
+    const userMode = localStorage.getItem("userMode");
+
+    if (userMode === "guest") {
+      return [];
+    }
+
     const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+      return [];
+    }
 
     const saved = localStorage.getItem(`myReports_${userId}`);
 
