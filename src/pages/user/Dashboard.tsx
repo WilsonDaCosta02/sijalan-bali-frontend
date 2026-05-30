@@ -806,6 +806,7 @@ const styles = {
     color: "white",
     width: "30px",
     height: "30px",
+    fontSize: "16px",
     borderRadius: "50%",
     cursor: "pointer",
   },
