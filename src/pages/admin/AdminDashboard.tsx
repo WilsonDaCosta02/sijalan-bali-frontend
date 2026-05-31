@@ -445,10 +445,27 @@ const AdminDashboard = () => {
                                 style={{
                                   ...styles.td,
                                   paddingLeft: "0px",
-                                  fontWeight: "500",
                                 }}
                               >
-                                {r.road_name}
+                                <div
+                                  style={{
+                                    fontWeight: "500",
+                                    marginBottom: "4px",
+                                  }}
+                                >
+                                  {r.road_name}
+                                </div>
+
+                                <div
+                                  style={{
+                                    fontSize: "12px",
+                                    color: "#94a3b8",
+                                  }}
+                                >
+                                  {new Date(r.created_at).toLocaleString(
+                                    "id-ID",
+                                  )}
+                                </div>
                               </td>
 
                               <td
