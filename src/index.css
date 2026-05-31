@@ -269,3 +269,10 @@ html:not(.dark) .divider-dynamic {
     transform: translateY(0) scale(1);
   }
 }
+
+/* 🔥 Fix Safari iPhone Auto Zoom */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
