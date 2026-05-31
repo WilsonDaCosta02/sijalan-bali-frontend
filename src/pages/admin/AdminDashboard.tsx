@@ -460,7 +460,7 @@ const AdminDashboard = () => {
                                   <div
                                     style={{
                                       fontSize: "13px",
-                                      color: "#94a3b8",
+                                      color: "#ffffff",
                                       fontStyle: "italic",
                                       marginBottom: "4px",
                                     }}
