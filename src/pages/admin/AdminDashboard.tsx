@@ -465,7 +465,7 @@ const AdminDashboard = () => {
                                       marginBottom: "4px",
                                     }}
                                   >
-                                    ({r.landmark})
+                                    ( {r.landmark} )
                                   </div>
                                 )}
 
