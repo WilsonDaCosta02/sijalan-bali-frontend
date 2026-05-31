@@ -129,20 +129,32 @@ const ReportHistory = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    const shouldScroll = sessionStorage.getItem("scrollToLatestReport");
+useEffect(() => {
+  const shouldScroll = sessionStorage.getItem(
+    "scrollToLatestReport"
+  );
 
-    if (shouldScroll === "true" && filteredReports.length > 0) {
-      setTimeout(() => {
-        lastReportRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
+  console.log("FLAG:", shouldScroll);
+  console.log("JUMLAH:", filteredReports.length);
 
-        sessionStorage.removeItem("scrollToLatestReport");
-      }, 700);
-    }
-  }, [filteredReports]);
+  if (
+    shouldScroll === "true" &&
+    filteredReports.length > 0
+  ) {
+    console.log("AUTO SCROLL JALAN");
+
+    setTimeout(() => {
+      lastReportRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      sessionStorage.removeItem(
+        "scrollToLatestReport"
+      );
+    }, 700);
+  }
+}, [filteredReports]);
 
   return (
     <>
