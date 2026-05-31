@@ -456,6 +456,19 @@ const AdminDashboard = () => {
                                   {r.road_name}
                                 </div>
 
+                                {r.landmark && (
+                                  <div
+                                    style={{
+                                      fontSize: "13px",
+                                      color: "#94a3b8",
+                                      fontStyle: "italic",
+                                      marginBottom: "4px",
+                                    }}
+                                  >
+                                    ({r.landmark})
+                                  </div>
+                                )}
+
                                 <div
                                   style={{
                                     fontSize: "12px",
