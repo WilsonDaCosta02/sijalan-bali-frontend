@@ -132,7 +132,12 @@ const ReportHistory = () => {
   useEffect(() => {
     const shouldScroll = sessionStorage.getItem("scrollToLatestReport");
 
+    console.log("FLAG:", shouldScroll);
+    console.log("JUMLAH:", filteredReports.length);
+
     if (shouldScroll === "true" && filteredReports.length > 0) {
+      console.log("AUTO SCROLL JALAN");
+
       setTimeout(() => {
         lastReportRef.current?.scrollIntoView({
           behavior: "smooth",
