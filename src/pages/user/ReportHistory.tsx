@@ -1,6 +1,6 @@
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import { API_URL } from "../../config/api";
 import { authFetch } from "../../utils/authFetch";
@@ -36,6 +36,7 @@ const ReportHistory = () => {
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const lastReportRef = useRef<HTMLDivElement | null>(null);
 
   const [openSidebar, setOpenSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -128,6 +129,21 @@ const ReportHistory = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const shouldScroll = sessionStorage.getItem("scrollToLatestReport");
+
+    if (shouldScroll === "true" && filteredReports.length > 0) {
+      setTimeout(() => {
+        lastReportRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        sessionStorage.removeItem("scrollToLatestReport");
+      }, 700);
+    }
+  }, [filteredReports]);
+
   return (
     <>
       <Navbar setOpenSidebar={setOpenSidebar} />
@@ -213,6 +229,7 @@ const ReportHistory = () => {
               filteredReports.map((item, i) => (
                 <div
                   key={i}
+                  ref={i === filteredReports.length - 1 ? lastReportRef : null}
                   style={styles.row(isMobile)}
                   onClick={() => setSelectedReport(item)}
                   onMouseEnter={(e) =>

@@ -364,6 +364,8 @@ const CreateReport = () => {
     setShowSuccess(true);
 
     setTimeout(() => {
+      sessionStorage.setItem("scrollToLatestReport", "true");
+
       navigate("/history");
     }, 1800); // auto hilang 2 detik
 
