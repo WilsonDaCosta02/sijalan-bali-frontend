@@ -660,24 +660,8 @@ const AdminDashboard = () => {
                         <h4 style={styles.infoTitle}>Informasi Laporan</h4>
 
                         <div style={styles.infoRow}>
-                          <span style={styles.label}>Nama:</span>
-                          <span style={styles.value}>
-                            {selectedReport.user_name || "-"}
-                          </span>
-                        </div>
-
-                        <div style={styles.infoRow}>
-                          <span style={styles.label}>Email:</span>
-                          <span style={styles.value}>
-                            {selectedReport.user_email || "-"}
-                          </span>
-                        </div>
-
-                        <div style={styles.infoRow}>
-                          <span style={styles.label}>No HP:</span>
-                          <span style={styles.value}>
-                            {selectedReport.user_phone || "-"}
-                          </span>
+                          <span style={styles.label}>Pelapor:</span>
+                          <span style={styles.value}>Anonim</span>
                         </div>
 
                         <div style={styles.infoRow}>
